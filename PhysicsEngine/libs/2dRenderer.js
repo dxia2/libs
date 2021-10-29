@@ -1,15 +1,24 @@
 class Camera{
+    static ctx;
+    static canvas;
     static renderers = [];
-    static position;
-    static size;
+    static position = new Vector2(0, 0);
+    static size = new Vector2(0, 0);
+
+    static initialize(canvas, ctx, position, size){
+        this.canvas = canvas;
+        this.ctx = ctx;
+        this.position = position;
+        this.size = size;
+    }
     static update(){
-        for(let i = 0; i < this.renderers.length; i++){
-            this.renderers[i].draw();
+        this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for(let i = 0; i < Camera.renderers.length; i++){
+            Camera.renderers[i].draw();
         }
     }
-
-    static getPosition(){
-        return new Vector2(this.position.x - this.size.x, this.position.y - this.size.y);
+    static getPositionRelativeToCanvas(){
+        return new Vector2(Camera.position.x - Camera.size.x / 2, Camera.position.y - Camera.size.y / 2);
     }
 }
 class Renderer{
@@ -34,11 +43,11 @@ class SpriteRenderer extends Renderer{
 
     draw(){
         super.draw();
-        this.canvasCtx.translate(gameobject.transform.position.x + Camera.getPosition().x, gameobject.transform.position.y + Camera.getPosition().y);
-        this.canvasCtx.rotate(ExtendedMath.degToRad(gameobject.transform.rotation));
+        this.canvasCtx.translate(this.gameObject.transform.position.x - Camera.getPositionRelativeToCanvas().x, -this.gameObject.transform.position.y - Camera.getPositionRelativeToCanvas().y);
+        this.canvasCtx.rotate(ExtendedMath.degToRad(this.gameObject.transform.rotation));
         this.canvasCtx.drawImage(this.sprite, -this.imageSize.x / 2, -this.imageSize.y / 2, this.imageSize.x, this.imageSize.y);
-        this.canvasCtx.rotate(-ExtendedMath.degToRad(gameobject.transform.rotation));
-        this.canvasCtx.translate(-gameobject.transform.position.x, -gameobject.transform.position.y);
+        this.canvasCtx.rotate(-ExtendedMath.degToRad(this.gameObject.transform.rotation));
+        this.canvasCtx.translate(-this.gameObject.transform.position.x + Camera.getPositionRelativeToCanvas().x, this.gameObject.transform.position.y + Camera.getPositionRelativeToCanvas().y);
     }
 }
 
