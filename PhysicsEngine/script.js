@@ -35,7 +35,7 @@ function update(){
     gameobject.transform.rotation += deltaTime * 200;
 
 
-    screenShake();
+    //screenShake();
     if(keysPressed["a"]){
         player.transform.position.x -= playerMoveSpeed * deltaTime;
     }
@@ -48,7 +48,7 @@ function update(){
     if(keysPressed["s"]){
         player.transform.position.y -= playerMoveSpeed * deltaTime;
     }
-    // Camera.position = new Vector2(player.transform.position.x, player.transform.position.y);
+    Camera.position = new Vector2(player.transform.position.x, player.transform.position.y);
     if(gameIsRunning){
         Camera.update();
         requestAnimationFrame(update);

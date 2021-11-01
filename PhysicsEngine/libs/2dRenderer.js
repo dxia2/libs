@@ -17,9 +17,6 @@ class Camera{
             Camera.renderers[i].draw();
         }
     }
-    static getPositionRelativeToCanvas(){
-        return new Vector2(Camera.position.x - Camera.size.x / 2, Camera.position.y - Camera.size.y / 2);
-    }
 }
 class Renderer{
     gameObject;
@@ -43,11 +40,11 @@ class SpriteRenderer extends Renderer{
 
     draw(){
         super.draw();
-        this.canvasCtx.translate(this.gameObject.transform.position.x - Camera.getPositionRelativeToCanvas().x, -this.gameObject.transform.position.y - Camera.getPositionRelativeToCanvas().y);
+        this.canvasCtx.translate(this.gameObject.transform.position.x - (Camera.position.x - Camera.size.x / 2), -(this.gameObject.transform.position.y - Camera.position.y - Camera.size.y / 2));
         this.canvasCtx.rotate(ExtendedMath.degToRad(this.gameObject.transform.rotation));
-        this.canvasCtx.drawImage(this.sprite, -this.imageSize.x / 2, -this.imageSize.y / 2, this.imageSize.x, this.imageSize.y);
+        this.canvasCtx.drawImage(this.sprite, -this.imageSize.x / 2, -this.imageSize.y / 2, this.imageSize.x, this.imageSize.y); // cam, object pos = 50 / cam pos = -150 + 50 100
         this.canvasCtx.rotate(-ExtendedMath.degToRad(this.gameObject.transform.rotation));
-        this.canvasCtx.translate(-this.gameObject.transform.position.x + Camera.getPositionRelativeToCanvas().x, this.gameObject.transform.position.y + Camera.getPositionRelativeToCanvas().y);
+        this.canvasCtx.translate(-this.gameObject.transform.position.x + (Camera.position.x - Camera.size.x / 2), -(-this.gameObject.transform.position.y + Camera.position.y + Camera.size.y / 2));
     }
 }
 

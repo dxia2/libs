@@ -18,4 +18,12 @@ class Vector2{
         this.x = x;
         this.y = y;
     }
+    getMagnitude(){
+        return Math.sqrt(Math.pow(this.x, 2) + Math.Pow(this.y, 2));
+    }
+    // LEFT OF F HEER AAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    getNormalizedVector(){
+        let magnitude = this.getMagnitude();
+        return new Vector2;
+    }
 }
