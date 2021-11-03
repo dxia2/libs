@@ -9,7 +9,7 @@ class GameObject{
 
     addComponent(component){
         for(let i = 0; i < this.components.length; i++){
-            if(this.components[i] instanceof (typeof component)){
+            if(this.components[i].constructor === component.constructor){
                 console.log("Cannot have 2 components of the same type on a gameobject!");
                 return;
             }

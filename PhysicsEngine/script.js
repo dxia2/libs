@@ -12,17 +12,17 @@ gameobject.transform.position.x = 0;
 gameobject.transform.position.y = 0;
 gameobject.transform.rotation = 135;
 gameobject.addComponent(new SpriteRenderer(gameobject, ctx, pepeImg, 200, 50));
-gameobject.addComponent(new BoxCollider(gameobject, gameobject.transform.position, new Vector2(200, 50), function(){console.log("AAAAAAAAA")}));
 
 let gameobject2 = new GameObject();
 gameobject2.transform.position.x = 100;
 gameobject2.transform.position.y = -100;
 gameobject2.addComponent(new SpriteRenderer(gameobject2, ctx, pepeImg, 300, 50));
+gameobject2.addComponent(new BoxCollider(gameobject2, gameobject2.transform.position, new Vector2(300, 50), function(){console.log("AAAAAAAAA")}));
 
 let playerMoveSpeed = 200;
 let player = new GameObject();
 player.addComponent(new SpriteRenderer(player, ctx, pepeImg, 50, 50));
-player.addComponent(new BoxCollider(player, player.transform.position, new Vector2(200, 50), function(){console.log("AAAAAAAAA")}));
+player.addComponent(new BoxCollider(player, player.transform.position, new Vector2(50, 50), function(){console.log("AAAAAAAAA")}));
 
 let gameIsRunning = true;
 let multiplier = 1;
@@ -32,7 +32,7 @@ function update(){
 
     CollisionManager.updateColliders();
     CollisionManager.checkAllCollisions();
-    
+
 
     if(gameobject.transform.position.x > 200){
         multiplier = -1;
@@ -59,6 +59,8 @@ function update(){
     Camera.position = new Vector2(player.transform.position.x, player.transform.position.y);
     if(gameIsRunning){
         Camera.update();
+            
+    gameobject2.getComponent(BoxCollider).drawBox();
         requestAnimationFrame(update);
     }
 }

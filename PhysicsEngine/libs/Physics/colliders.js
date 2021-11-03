@@ -14,9 +14,10 @@ class CollisionManager{
     static checkAllCollisions(){
         for(let a = 0; a < CollisionManager.colliders.length; a++){
             for(let b = a + 1; b < CollisionManager.colliders.length; b++){
+                // console.log("A");
                 if(CollisionManager.checkCollision(CollisionManager.colliders[a], CollisionManager.colliders[b])){
-                    CollisionManager.colliders[a].onCollision;
-                    CollisionManager.colliders[b].onCollision;
+                    CollisionManager.colliders[a].onCollision();
+                    CollisionManager.colliders[b].onCollision();
                 }
                 
             }
@@ -33,30 +34,30 @@ class CollisionManager{
             let collider2Max = collider2Min;
 
             for(let i = 0; i < collider1.vertices.length; i++){
-                let dot = collider1.vertices[i];
+                let dot = ExtendedMath.vector2DotProduct(collider1PerpAxis, collider1.vertices[i]);
                 collider1Min = Math.min(collider1Min, dot);
                 collider1Max = Math.max(collider1Max, dot);
 
                 let vOffset = new Vector2(collider1.position.x - collider2.position.x, collider1.position.y - collider2.position.y);
-                let sOffset = ExtendedMath.vector2DotProduct(axis, vOffset);
+                let sOffset = ExtendedMath.vector2DotProduct(collider1PerpAxis, vOffset);
 
                 collider1Min += sOffset;
                 collider1Max += sOffset;
             }
 
             for(let i = 0; i < collider2.vertices.length; i++){
-                let dot = collider2.vertices[i];
+                let dot = ExtendedMath.vector2DotProduct(collider1PerpAxis, collider1.vertices[i]);
                 collider2Min = Math.min(collider2Min, dot);
                 collider2Max = Math.max(collider2Max, dot);
 
                 let vOffset = new Vector2(collider2.position.x - collider2.position.x, collider2.position.y - collider2.position.y);
-                let sOffset = ExtendedMath.vector2DotProduct(axis, vOffset);
+                let sOffset = ExtendedMath.vector2DotProduct(collider1PerpAxis, vOffset);
 
                 collider2Min += sOffset;
                 collider2Max += sOffset;
             }
-
             if(collider1Min - collider2Max > 0 || collider2Min - collider1Max > 0){
+
                 return false;
             }
         }
@@ -72,34 +73,36 @@ class CollisionManager{
             let collider2Max = collider2Min;
 
             for(let i = 0; i < collider1.vertices.length; i++){
-                let dot = collider1.vertices[i];
+                let dot = ExtendedMath.vector2DotProduct(collider2PerpAxis, collider1.vertices[i]);
                 collider1Min = Math.min(collider1Min, dot);
                 collider1Max = Math.max(collider1Max, dot);
 
                 let vOffset = new Vector2(collider1.position.x - collider2.position.x, collider1.position.y - collider2.position.y);
-                let sOffset = ExtendedMath.vector2DotProduct(axis, vOffset);
+                let sOffset = ExtendedMath.vector2DotProduct(collider2PerpAxis, vOffset);
 
                 collider1Min += sOffset;
                 collider1Max += sOffset;
             }
 
             for(let i = 0; i < collider2.vertices.length; i++){
-                let dot = collider2.vertices[i];
+                let dot = ExtendedMath.vector2DotProduct(collider2PerpAxis, collider1.vertices[i]);
                 collider2Min = Math.min(collider2Min, dot);
                 collider2Max = Math.max(collider2Max, dot);
 
                 let vOffset = new Vector2(collider2.position.x - collider2.position.x, collider2.position.y - collider2.position.y);
-                let sOffset = ExtendedMath.vector2DotProduct(axis, vOffset);
+                let sOffset = ExtendedMath.vector2DotProduct(collider2PerpAxis, vOffset);
 
                 collider2Min += sOffset;
                 collider2Max += sOffset;
             }
 
             if(collider1Min - collider2Max > 0 || collider2Min - collider1Max > 0){
+                console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                 return false;
             }
         }
-        return false;
+        console.log("PLS WRKO");
+        return true;
     }
 }
 class Edge{
@@ -158,5 +161,16 @@ class BoxCollider{
         for(let i = 0; i < this.vertices.length; i++){
             this.vertices[i] = ExtendedMath.rotatePoint(Vector2.zero(), this.originalVerticesPos[i], this.gameObject.transform.rotation);
         }
+    }
+
+    drawBox(){
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgb(0, 0, 255)";
+        ctx.beginPath();
+        ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
+        for(let i = 1; i < this.vertices.length; i++){
+            ctx.lineTo(this.vertices[i].x, this.vertices[i].y);
+        }
+        ctx.stroke();
     }
 }
