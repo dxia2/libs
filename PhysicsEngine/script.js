@@ -16,11 +16,13 @@ gameobject.addComponent(new SpriteRenderer(gameobject, ctx, pepeImg, 200, 50));
 let gameobject2 = new GameObject();
 gameobject2.transform.position.x = 100;
 gameobject2.transform.position.y = -100;
+gameobject2.transform.rotation = 45;
 gameobject2.addComponent(new SpriteRenderer(gameobject2, ctx, pepeImg, 300, 50));
-gameobject2.addComponent(new BoxCollider(gameobject2, gameobject2.transform.position, new Vector2(300, 50), function(){console.log("AAAAAAAAA")}));
+gameobject2.addComponent(new BoxCollider(gameobject2, gameobject2.transform.position, new Vector2(300, 50), function(){}));
 
 let playerMoveSpeed = 200;
 let player = new GameObject();
+player.transform.rotation = -100;
 player.addComponent(new SpriteRenderer(player, ctx, pepeImg, 50, 50));
 player.addComponent(new BoxCollider(player, player.transform.position, new Vector2(50, 50), function(){console.log("AAAAAAAAA")}));
 

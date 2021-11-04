@@ -23,4 +23,23 @@ class ExtendedMath{
     static vector2DotProduct(point1, point2){
         return (point1.x * point2.x) + (point1.y * point2.y);
     }
+
+    static projShapeOntoAxis(axis, collider){
+        let min = ExtendedMath.vector2DotProduct(axis, collider.getVertexWorldPos(0));
+        let max = min;
+        for(let i = 0; i < collider.vertices.length; i++){
+            let p = ExtendedMath.vector2DotProduct(axis, collider.getVertexWorldPos(i));
+            if(p < min){
+                min = p;
+            }
+            if(p > max){
+                max = p;
+            }
+        }
+
+        return {
+            min: min,
+            max: max
+        }
+    }
 }
