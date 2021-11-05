@@ -23,5 +23,6 @@ class GameObject{
                 return this.components[i];
             }
         }
+        return null;
     }
 }

@@ -1,10 +1,6 @@
 class CollisionManager{
     static colliders = [];
 
-    //put 
-    // CollisionManager.updateColliders();
-    // CollisionManager.checkAllCollisions();
-    //at start of drawanimationframe
     static updateColliders(){
         for(let i = 0; i < this.colliders.length; i++){
             CollisionManager.colliders[i].update();
@@ -16,8 +12,11 @@ class CollisionManager{
             for(let b = a + 1; b < CollisionManager.colliders.length; b++){
                 // console.log("A");
                 if(CollisionManager.checkCollision(CollisionManager.colliders[a], CollisionManager.colliders[b])){
-                    CollisionManager.colliders[a].onCollision();
-                    CollisionManager.colliders[b].onCollision();
+                    CollisionManager.colliders[a].collisionFunctions.onCollision(CollisionManager.colliders[b]);
+                    CollisionManager.colliders[b].collisionFunctions.onCollision(CollisionManager.colliders[a]);
+                }else{
+                    CollisionManager.colliders[a].collisionFunctions.onNotCollision(CollisionManager.colliders[b]);
+                    CollisionManager.colliders[b].collisionFunctions.onNotCollision(CollisionManager.colliders[a]);
                 }
                 
             }
@@ -67,6 +66,41 @@ class Edge{
         return axis.getNormalizedVector();
     }
 }
+class CollisionFunctions{
+    onCollisionEnterFunctions = [];
+    onCollisionStayFunctions = [];
+    onCollisionExitFunctions = [];
+
+    otherCollidersTouching = [];
+
+    onCollision(otherCollider){
+        for(let i = 0; i < this.otherCollidersTouching.length; i++){
+            // call on collision stay if we are touching the same collider as before
+            if(this.otherCollidersTouching[i] === otherCollider){
+
+                for(let i = 0; i < this.onCollisionStayFunctions.length; i++){
+                    this.onCollisionStayFunctions[i](otherCollider);
+                }
+            }
+        }
+
+        if(!this.otherCollidersTouching.includes(otherCollider)){
+            for(let i = 0; i < this.onCollisionEnterFunctions.length; i++){
+                this.onCollisionEnterFunctions[i](otherCollider);
+            }
+            this.otherCollidersTouching.push(otherCollider);
+        }
+    }
+
+    onNotCollision(otherCollider){
+        if(this.otherCollidersTouching.includes(otherCollider)){
+            for(let i = 0; i < this.onCollisionExitFunctions.length; i++){
+                this.onCollisionExitFunctions[i](otherCollider);
+            }
+            this.otherCollidersTouching.splice(this.otherCollidersTouching.indexOf(otherCollider), 1);
+        }
+    }
+}
 class BoxCollider{
     gameObject;
     gameObjectLastRotation;
@@ -76,8 +110,8 @@ class BoxCollider{
     vertices;
     originalVerticesPos;
     edges;
-    onCollision;
-    constructor(gameObject, position = new Vector2(0, 0), size = new Vector2(0, 0), onCollision){
+    collisionFunctions;
+    constructor(gameObject, position = new Vector2(0, 0), size = new Vector2(0, 0)){
         this.gameObject = gameObject;
         this.position = position;
         this.size = size;
@@ -98,9 +132,9 @@ class BoxCollider{
         new Edge(this.vertices[1], this.vertices[2]),
         new Edge(this.vertices[2], this.vertices[3]),
         new Edge(this.vertices[3], this.vertices[0])
-        ]
+        ];
 
-        this.onCollision = onCollision;
+        this.collisionFunctions = new CollisionFunctions();
 
         CollisionManager.colliders.push(this);
     }
