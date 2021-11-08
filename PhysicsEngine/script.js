@@ -13,29 +13,33 @@ Camera.initialize(canvas, ctx, new Vector2(0, 0), new Vector2(600, 400))
 // gameobject.transform.rotation = 135;
 // gameobject.addComponent(new SpriteRenderer(gameobject, ctx, pepeImg, 200, 50));
 
-let gameobject2 = new GameObject();
+let gameobject2 = new GameObject("wall");
 gameobject2.transform.position.x = 100;
 gameobject2.transform.position.y = -100;
 gameobject2.transform.rotation = 0;
 gameobject2.addComponent(new SpriteRenderer(gameobject2, ctx, pepeImg, 300, 50));
 gameobject2.addComponent(new BoxCollider(gameobject2, gameobject2.transform.position, new Vector2(300, 50)));
-gameobject2.addComponent(new Rigidbody(gameobject2, gameobject2.getComponent(BoxCollider), true));
+// gameobject2.addComponent(new Rigidbody(gameobject2, gameobject2.getComponent(BoxCollider), true));
+// gameobject2.getComponent(BoxCollider).rigidbody = gameobject2.getComponent(Rigidbody);
 
-let gameobject3 = new GameObject();
-gameobject3.transform.position.x = 100;
-gameobject3.transform.position.y = 50;
-gameobject3.addComponent(new SpriteRenderer(gameobject3, ctx, pepeImg, 50, 50));
-gameobject3.addComponent(new BoxCollider(gameobject3, gameobject3.transform.position, new Vector2(50, 50)));
-gameobject3.addComponent(new Rigidbody(gameobject3, gameobject3.getComponent(BoxCollider), true));
+// let gameobject3 = new GameObject("box");
+// gameobject3.transform.position.x = 100;
+// gameobject3.transform.position.y = 50;
+// gameobject3.addComponent(new SpriteRenderer(gameobject3, ctx, pepeImg, 50, 50));
+// gameobject3.addComponent(new BoxCollider(gameobject3, gameobject3.transform.position, new Vector2(50, 50)));
+// gameobject3.addComponent(new Rigidbody(gameobject3, gameobject3.getComponent(BoxCollider), true));
+// gameobject3.getComponent(BoxCollider).rigidbody = gameobject3.getComponent(Rigidbody);
 
 let playerMoveSpeed = 200;
-let player = new GameObject();
+let player = new GameObject("Player");
 player.transform.rotation = -100;
 player.addComponent(new SpriteRenderer(player, ctx, pepeImg, 50, 50));
 player.addComponent(new BoxCollider(player, player.transform.position, new Vector2(50, 50)));
 player.getComponent(BoxCollider).collisionFunctions.onCollisionEnterFunctions.push(function(){console.log("A")});
 player.getComponent(BoxCollider).collisionFunctions.onCollisionExitFunctions.push(function(){console.log("PODOPOSPPPP")});
 player.addComponent(new Rigidbody(player, player.getComponent(BoxCollider), true));
+player.getComponent(BoxCollider).rigidbody = player.getComponent(Rigidbody);
+
 
 let gameIsRunning = true;
 let multiplier = 1;

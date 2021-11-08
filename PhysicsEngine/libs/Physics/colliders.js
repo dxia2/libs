@@ -12,8 +12,11 @@ class CollisionManager{
             for(let b = a + 1; b < CollisionManager.colliders.length; b++){
                 // console.log("A");
                 if(CollisionManager.checkCollision(CollisionManager.colliders[a], CollisionManager.colliders[b])){
+                    // Call the on collision functions and rigidbody of the 2 colliders if they touch
                     CollisionManager.colliders[a].collisionFunctions.onCollision(CollisionManager.colliders[b]);
                     CollisionManager.colliders[b].collisionFunctions.onCollision(CollisionManager.colliders[a]);
+                    CollisionManager.colliders[a].checkRigidbody(CollisionManager.colliders[b], true);
+                    CollisionManager.colliders[b].checkRigidbody(CollisionManager.colliders[a], false);
                 }else{
                     CollisionManager.colliders[a].collisionFunctions.onNotCollision(CollisionManager.colliders[b]);
                     CollisionManager.colliders[b].collisionFunctions.onNotCollision(CollisionManager.colliders[a]);
@@ -111,11 +114,12 @@ class BoxCollider{
     originalVerticesPos;
     edges;
     collisionFunctions;
-    constructor(gameObject, position = new Vector2(0, 0), size = new Vector2(0, 0)){
+    rigidbody;
+    constructor(gameObject, position = new Vector2(0, 0), size = new Vector2(0, 0), rigidbody){
         this.gameObject = gameObject;
         this.position = position;
         this.size = size;
-
+        this.rigidbody = rigidbody;
 
         this.vertices = [new Vector2(this.size.x / 2, this.size.y / 2), // Top right vertex
             new Vector2(this.size.x / 2, -this.size.y / 2), // Bottom right vertex
@@ -171,6 +175,12 @@ class BoxCollider{
         }
         ctx.lineTo(this.vertices[0].x + this.position.x - (Camera.position.x - Camera.size.x / 2), -(this.vertices[0].y + this.position.y - Camera.position.y - Camera.size.y / 2));
         ctx.stroke();
+    }
+
+    checkRigidbody(otherCollider, transferForce){
+        if(this.rigidbody != undefined){
+            this.rigidbody.onCollision(otherCollider, transferForce);
+        }
     }
 }
 

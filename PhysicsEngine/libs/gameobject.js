@@ -1,7 +1,9 @@
 class GameObject{
+    name;
     transform = new Transform(new Vector2(0, 0), 0, new Vector2(1, 1));
     components = [];
-    constructor(componentsToAdd = []){
+    constructor(name, componentsToAdd = []){
+        this.name = name;
         for(let i = 0; i < componentsToAdd.length; i++){
             this.components.push(componentsToAdd[i]);
         }
@@ -15,6 +17,7 @@ class GameObject{
             }
         }
         this.components.push(component);
+        return component;
     }
 
     getComponent(componentType){
