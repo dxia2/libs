@@ -30,4 +30,8 @@ class Vector2{
     static zero(){
         return new Vector2(0, 0);
     }
+
+    static multiply(vector2, multiplier){
+        return new Vector2(vector2.x * multiplier, vector2.y * multiplier);
+    }
 }

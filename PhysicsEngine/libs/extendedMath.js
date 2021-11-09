@@ -27,10 +27,12 @@ class ExtendedMath{
     static projShapeOntoAxis(axis, collider){
         let min = ExtendedMath.vector2DotProduct(axis, collider.getVertexWorldPos(0));
         let max = min;
+        let collVertex = collider.vertices[0];
         for(let i = 0; i < collider.vertices.length; i++){
             let p = ExtendedMath.vector2DotProduct(axis, collider.getVertexWorldPos(i));
             if(p < min){
                 min = p;
+                collVertex = collider.vertices[i];
             }
             if(p > max){
                 max = p;
@@ -39,7 +41,8 @@ class ExtendedMath{
 
         return {
             min: min,
-            max: max
+            max: max, 
+            collVertex: collVertex
         }
     }
 }

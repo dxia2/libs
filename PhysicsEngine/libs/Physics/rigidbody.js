@@ -20,6 +20,7 @@ class Rigidbody{
     collider;
     // controls if the rigidbody will be affected by other forces
     isDynamic;
+    
 
     constructor(gameObject, collider, isDynamic){
         this.gameObject = gameObject;
@@ -35,19 +36,19 @@ class Rigidbody{
         this.gameObject.transform.position.y += this.velocity.y * deltaTime;
     }
 
-    onCollision(otherCollider, transferForce){
+    onCollision(otherCollider, transferForce, smallestAxis, contactVertex){
         let otherRb = otherCollider.gameObject.getComponent(Rigidbody);
         // Do stuff if the other collider doesn't have a rigidbody
         if(otherRb === null){
-            let otherColliderRelativePosNormalized = new Vector2(otherCollider.gameObject.transform.position.x - this.gameObject.transform.position.x, otherCollider.gameObject.transform.position.y - this.gameObject.transform.position.y).getNormalizedVector();
-            // console.log(this.velocity.getMagnitude());
-            // console.log(this.gameObject.name);
+            // let otherColliderRelativePosNormalized = new Vector2(otherCollider.gameObject.transform.position.x - this.gameObject.transform.position.x, otherCollider.gameObject.transform.position.y - this.gameObject.transform.position.y).getNormalizedVector();
+            // // console.log(this.velocity.getMagnitude());
+            // // console.log(this.gameObject.name);
 
-            otherColliderRelativePosNormalized.x *= this.velocity.getMagnitude();
-            otherColliderRelativePosNormalized.y *= this.velocity.getMagnitude();
+            // otherColliderRelativePosNormalized.x *= this.velocity.getMagnitude();
+            // otherColliderRelativePosNormalized.y *= this.velocity.getMagnitude();
 
-            this.velocity.x -= otherColliderRelativePosNormalized.x;
-            this.velocity.y -= otherColliderRelativePosNormalized.y;
+            this.velocity.x += contactVertex.x;
+            this.velocity.y += contactVertex.y;
             return;
         }
         if(transferForce){

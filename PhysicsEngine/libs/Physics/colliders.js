@@ -10,13 +10,14 @@ class CollisionManager{
     static checkAllCollisions(){
         for(let a = 0; a < CollisionManager.colliders.length; a++){
             for(let b = a + 1; b < CollisionManager.colliders.length; b++){
-                // console.log("A");
-                if(CollisionManager.checkCollision(CollisionManager.colliders[a], CollisionManager.colliders[b])){
+                // console.log("A")
+                let collisionData = CollisionManager.checkCollision(CollisionManager.colliders[a], CollisionManager.colliders[b]);
+                if(collisionData.colliding){
                     // Call the on collision functions and rigidbody of the 2 colliders if they touch
                     CollisionManager.colliders[a].collisionFunctions.onCollision(CollisionManager.colliders[b]);
                     CollisionManager.colliders[b].collisionFunctions.onCollision(CollisionManager.colliders[a]);
-                    CollisionManager.colliders[a].checkRigidbody(CollisionManager.colliders[b], true);
-                    CollisionManager.colliders[b].checkRigidbody(CollisionManager.colliders[a], false);
+                    CollisionManager.colliders[a].checkRigidbody(CollisionManager.colliders[b], true, collisionData.smallestAxis, collisionData.contactVertex);
+                    CollisionManager.colliders[b].checkRigidbody(CollisionManager.colliders[a], false, collisionData.smallestAxis, collisionData.contactVertex);
                 }else{
                     CollisionManager.colliders[a].collisionFunctions.onNotCollision(CollisionManager.colliders[b]);
                     CollisionManager.colliders[b].collisionFunctions.onNotCollision(CollisionManager.colliders[a]);
@@ -25,7 +26,12 @@ class CollisionManager{
             }
         }
     }
+    // Uses SAT
     static checkCollision(collider1, collider2){
+        let minOverlap = null;
+        let smallestAxis;
+        let vertexObj;
+
         for(let i = 0; i < collider1.edges.length; i++){
             let axes1 = collider1.edges[i].getPerpendicularAxis();
             let proj1, proj2 = 0;
@@ -35,7 +41,32 @@ class CollisionManager{
             let overlap = Math.min(proj1.max, proj2.max) - Math.max(proj1.min, proj2.min);
 
             if(overlap < 0){
-                return false;
+                return {
+                    colliding: false,
+                    smallestAxis: null,
+                    contactVertex: null
+                };
+            }
+
+            if((proj1.max > proj2.max && proj1.min < proj2.min) ||
+            (proj1.max < proj2.max && proj1.min > proj2.min)){
+                let mins = Math.abs(proj1.min - proj2.min);
+                let maxs = Math.abs(proj1.max - proj2.max);
+                if(mins < maxs){
+                    overlap += mins;
+                }else{
+                    overlap += maxs;
+                    axes1 = Vector2.multiply(axes1, -1);
+                }
+            }
+
+            if(overlap < minOverlap || minOverlap === null){
+                minOverlap = overlap;
+                smallestAxis = axes1;
+                vertexObj = collider2;
+                if(proj1.max > proj2.max){
+                    smallestAxis = Vector2.multiply(axes1, -1);
+                }
             }
         }
         for(let i = 0; i < collider2.edges.length; i++){
@@ -46,12 +77,41 @@ class CollisionManager{
             proj2 = ExtendedMath.projShapeOntoAxis(axes2, collider2);
             let overlap = Math.min(proj1.max, proj2.max) - Math.max(proj1.min, proj2.min);
             if(overlap < 0){
-                return false;
+                return {
+                    colliding: false,
+                    smallestAxis: null,
+                    contactVertex: null
+                };
+            }
+
+            if((proj1.max > proj2.max && proj1.min < proj2.min) ||
+            (proj1.max < proj2.max && proj1.min > proj2.min)){
+                let mins = Math.abs(proj1.min - proj2.min);
+                let maxs = Math.abs(proj1.max - proj2.max);
+                if(mins < maxs){
+                    overlap += mins;
+                }else{
+                    overlap += maxs;
+                    axes2 = Vector2.multiply(axes2, -1);
+                }
+            }
+
+            if(overlap < minOverlap || minOverlap === null){
+                minOverlap = overlap;
+                smallestAxis = axes2;
+                vertexObj = collider1;
+                if(proj1.max < proj2.max){
+                    smallestAxis = Vector2.multiply(axes2, -1);
+                }
             }
         }
-        
 
-        return true;
+        let contactVertex = ExtendedMath.projShapeOntoAxis(smallestAxis, vertexObj).collVertex;
+        return {
+            colliding: true,
+            smallestAxis: smallestAxis,
+            contactVertex: contactVertex
+        };
     }
 
     
@@ -177,87 +237,9 @@ class BoxCollider{
         ctx.stroke();
     }
 
-    checkRigidbody(otherCollider, transferForce){
+    checkRigidbody(otherCollider, transferForce, smallestAxis, contactVertex){
         if(this.rigidbody != undefined){
-            this.rigidbody.onCollision(otherCollider, transferForce);
+            this.rigidbody.onCollision(otherCollider, transferForce, smallestAxis, contactVertex);
         }
     }
 }
-
-// for(let a = 0; a < collider1.edges.length; a++){
-        //     let collider1PerpAxis = collider1.edges[a].getPerpendicularAxis();
-        //     let collider1Min = ExtendedMath.vector2DotProduct(collider1PerpAxis, collider1.vertices[0]);
-        //     let collider1Max = collider1Min;
-
-        //     let collider2Min = ExtendedMath.vector2DotProduct(collider1PerpAxis, collider2.vertices[0]);
-        //     let collider2Max = collider2Min;
-
-        //     for(let i = 0; i < collider1.vertices.length; i++){
-        //         let dot = ExtendedMath.vector2DotProduct(collider1PerpAxis, collider1.vertices[i]);
-        //         collider1Min = Math.min(collider1Min, dot);
-        //         collider1Max = Math.max(collider1Max, dot);
-
-        //         let vOffset = new Vector2(collider1.position.x - collider2.position.x, collider1.position.y - collider2.position.y);
-        //         let sOffset = ExtendedMath.vector2DotProduct(collider1PerpAxis, vOffset);
-
-        //         collider1Min += sOffset;
-        //         collider1Max += sOffset;
-        //     }
-
-        //     for(let i = 0; i < collider2.vertices.length; i++){
-        //         let dot = ExtendedMath.vector2DotProduct(collider1PerpAxis, collider1.vertices[i]);
-        //         collider2Min = Math.min(collider2Min, dot);
-        //         collider2Max = Math.max(collider2Max, dot);
-
-        //         let vOffset = new Vector2(collider2.position.x - collider2.position.x, collider2.position.y - collider2.position.y);
-        //         let sOffset = ExtendedMath.vector2DotProduct(collider1PerpAxis, vOffset);
-
-        //         collider2Min += sOffset;
-        //         collider2Max += sOffset;
-        //     }
-        //     if(collider1Min - collider2Max > 0 || collider2Min - collider1Max > 0){
-
-        //         return false;
-        //     }
-        // }
-        // // DO it for the second collider
-
-        // for(let a = 0; a < collider2.edges.length; a++){
-        //     let collider2PerpAxis = collider2.edges[a].getPerpendicularAxis();
-        //     let collider1Min = ExtendedMath.vector2DotProduct(collider2PerpAxis, collider1.vertices[0]);
-        //     let collider1Max = collider1Min;
-
-
-        //     let collider2Min = ExtendedMath.vector2DotProduct(collider2PerpAxis, collider2.vertices[0]);
-        //     let collider2Max = collider2Min;
-
-        //     for(let i = 0; i < collider1.vertices.length; i++){
-        //         let dot = ExtendedMath.vector2DotProduct(collider2PerpAxis, collider1.vertices[i]);
-        //         collider1Min = Math.min(collider1Min, dot);
-        //         collider1Max = Math.max(collider1Max, dot);
-
-        //         let vOffset = new Vector2(collider1.position.x - collider2.position.x, collider1.position.y - collider2.position.y);
-        //         let sOffset = ExtendedMath.vector2DotProduct(collider2PerpAxis, vOffset);
-
-        //         collider1Min += sOffset;
-        //         collider1Max += sOffset;
-        //     }
-
-        //     for(let i = 0; i < collider2.vertices.length; i++){
-        //         let dot = ExtendedMath.vector2DotProduct(collider2PerpAxis, collider1.vertices[i]);
-        //         collider2Min = Math.min(collider2Min, dot);
-        //         collider2Max = Math.max(collider2Max, dot);
-
-        //         let vOffset = new Vector2(collider2.position.x - collider2.position.x, collider2.position.y - collider2.position.y);
-        //         let sOffset = ExtendedMath.vector2DotProduct(collider2PerpAxis, vOffset);
-
-        //         collider2Min += sOffset;
-        //         collider2Max += sOffset;
-        //     }
-
-        //     if(collider1Min - collider2Max > 0 || collider2Min - collider1Max > 0){
-        //         return false;
-        //     }
-        // }
-        // // console.log("PLS WRKO");
-        // return true;
