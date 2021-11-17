@@ -20,9 +20,7 @@ class ExtendedMath{
         return new Vector2(newX, newY);
     }
 
-    static vector2DotProduct(point1, point2){
-        return (point1.x * point2.x) + (point1.y * point2.y);
-    }
+
 
     static projShapeOntoAxis(axis, collider){
         let min = ExtendedMath.vector2DotProduct(axis, collider.getVertexWorldPos(0));
@@ -44,5 +42,10 @@ class ExtendedMath{
             max: max, 
             collVertex: collVertex
         }
+    }
+
+    static round(number, precision){
+        let factor = 10**precision;
+        return Math.round(number * factor) / factor;
     }
 }

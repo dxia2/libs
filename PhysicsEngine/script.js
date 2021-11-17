@@ -10,7 +10,12 @@ Camera.initialize(canvas, ctx, new Vector2(0, 0), new Vector2(600, 400))
 
 let ball1 = new GameObject();
 ball1.addComponent(new SpriteRenderer(ball1, ctx, circleImg, 50, 50));
-ball1.addComponent(new CircleCollider(ball1, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0)))
+ball1.addComponent(new CircleCollider(ball1, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0)));
+ball1.transform.position = new Vector2(60, 60);
+
+let ball2 = new GameObject();
+ball2.addComponent(new SpriteRenderer(ball2, ctx, circleImg, 50, 50));
+ball2.addComponent(new CircleCollider(ball2, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0)));
 
 // let gameobject = new GameObject();
 // gameobject.transform.position.x = 0;
@@ -47,17 +52,13 @@ ball1.addComponent(new CircleCollider(ball1, new Vector2(0, 0), 25, new Vector2(
 
 
 let gameIsRunning = true;
-let moveSpeed = 500;
+let moveSpeed = 35;
 // let multiplier = 1;
+
+let distanceVec = new Vector2(0, 0);
 
 requestAnimationFrame(update);
 function update(){
-
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(100, 100);
-    ctx.strokeStyle = "green";
-    ctx.stroke();
 
     // if(gameobject.transform.position.x > 200){
     //     multiplier = -1;
@@ -85,12 +86,20 @@ function update(){
     if(keysPressed["s"]){
         ball1.getComponent(CircleCollider).acceleration.y = -moveSpeed;
     }
+
+    ball1.getComponent(CircleCollider).acceleration = ball1.getComponent(CircleCollider).acceleration.getNormalizedVector();
+    ball1.getComponent(CircleCollider).acceleration = Vector2.multiply(ball1.getComponent(CircleCollider).acceleration, moveSpeed);
     ball1.getComponent(CircleCollider).update();
-    ball1.getComponent(CircleCollider).display();
+    
     // Camera.position = new Vector2(player.transform.position.x, player.transform.position.y);
     if(gameIsRunning){
         Camera.update();
-            
+        ball1.getComponent(CircleCollider).display();
+        // distanceVec = Vector2.subtract(ball2.getComponent(CircleCollider).position, ball1.getComponent(CircleCollider).position);
+        // ctx.fillText("Distance: " + distanceVec.getMagnitude(), 450, 250);
+        if(coll_det_bb(ball1.getComponent(CircleCollider), ball2.getComponent(CircleCollider))){
+            pen_res_bb(ball1.getComponent(CircleCollider), ball2.getComponent(CircleCollider));
+        }
         requestAnimationFrame(update);
     }
 }

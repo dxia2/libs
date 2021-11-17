@@ -244,6 +244,22 @@
 //     }
 // }
 
+function pen_res_bb(b1, b2){
+    let dist = Vector2.subtract(b1.position, b2.position);
+    let pen_depth = b1.radius + b2.radius - dist.getMagnitude();
+    let pen_res = Vector2.multiply(dist.getNormalizedVector(), pen_depth / 2);
+    b1.position.addToThis(pen_res);
+    b2.position.addToThis(pen_res.multiplyThis(-1));
+    console.log(Vector2.add(b1.position, pen_res));
+}
+
+function coll_det_bb(b1, b2){
+    if(b1.radius + b2.radius >= Vector2.subtract(b2.position, b1.position).getMagnitude()){
+        return true;
+    }else{
+        return false;
+    }
+}
 
 class CircleCollider{
     gameObject;
@@ -284,16 +300,8 @@ class CircleCollider{
         this.gameObject.transform.position.y += this.velocity.y * deltaTime;
     }
     display(){
-        ctx.beginPath();
-        ctx.moveTo(this.position.x, this.position.y);
-        ctx.lineTo(this.position.x + (Camera.size.x / 2) + this.acceleration.x * 100, this.position.y + (Camera.size.y / 2) + this.acceleration.y * 100);
-        ctx.strokeStyle = "green";
-        ctx.stroke();
-        console.log(this.position.x + (Camera.size.x / 2) + this.acceleration.x * 100);
-        ctx.beginPath();
-        ctx.moveTo(this.position.x, this.position.y);
-        ctx.lineTo(this.position.x + this.velocity.x * 20, this.position.y + this.velocity.y * 20);
-        ctx.strokeStyle = "blue";
-        ctx.stroke();
+        Vector2.drawVec(this.position, Vector2.add(this.position, this.velocity), "green");
+        Vector2.drawVec(this.position, Vector2.add(this.position, this.acceleration), "blue");
+        Vector2.drawVec(this.position, Vector2.add(Vector2.multiply(this.acceleration.normal(), 50), this.position), "red");
     }
 }

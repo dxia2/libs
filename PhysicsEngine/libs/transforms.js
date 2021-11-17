@@ -23,8 +23,27 @@ class Vector2{
     }
 
     getNormalizedVector(){
+        if(this.getMagnitude() === 0){
+            return Vector2.zero();
+        }
         let magnitude = this.getMagnitude();
         return new Vector2(this.x / magnitude, this.y / magnitude);
+    }
+
+    normal(){
+        return new Vector2(-this.y, this.x).getNormalizedVector();
+    }
+
+    addToThis(vector2){
+        this.x += vector2.x;
+        this.y += vector2.y;
+        return this;
+    }
+
+    multiplyThis(multiplier){
+        this.x * multiplier;
+        this.y * multiplier;
+        return this;
     }
 
     static zero(){
@@ -33,5 +52,25 @@ class Vector2{
 
     static multiply(vector2, multiplier){
         return new Vector2(vector2.x * multiplier, vector2.y * multiplier);
+    }
+
+    static add(vector1, vector2){
+        return new Vector2(vector1.x + vector2.x, vector1.y + vector2.y);
+    }
+
+    static subtract(vector1, vector2){
+        return new Vector2(vector1.x - vector2.x, vector1.y - vector2.y);
+    }
+
+    static dot(point1, point2){
+        return (point1.x * point2.x) + (point1.y * point2.y);
+    }
+
+    static drawVec(vector1, vector2, color){
+        ctx.beginPath();
+        ctx.moveTo(vector1.x - (Camera.position.x - Camera.size.x / 2), -(vector1.y - Camera.position.y - Camera.size.y / 2));
+        ctx.lineTo(vector2.x - (Camera.position.x - Camera.size.x / 2), -(vector2.y - Camera.position.y - Camera.size.y / 2));
+        ctx.strokeStyle = color;
+        ctx.stroke();
     }
 }
