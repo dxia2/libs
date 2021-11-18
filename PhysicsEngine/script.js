@@ -10,12 +10,12 @@ Camera.initialize(canvas, ctx, new Vector2(0, 0), new Vector2(600, 400))
 
 let ball1 = new GameObject();
 ball1.addComponent(new SpriteRenderer(ball1, ctx, circleImg, 50, 50));
-ball1.addComponent(new CircleCollider(ball1, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0)));
-ball1.transform.position = new Vector2(60, 60);
+ball1.addComponent(new CircleCollider(ball1, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0.6));
+ball1.transform.position = new Vector2(0, 60);
 
 let ball2 = new GameObject();
 ball2.addComponent(new SpriteRenderer(ball2, ctx, circleImg, 50, 50));
-ball2.addComponent(new CircleCollider(ball2, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0)));
+ball2.addComponent(new CircleCollider(ball2, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0.6));
 
 // let gameobject = new GameObject();
 // gameobject.transform.position.x = 0;
@@ -50,13 +50,11 @@ ball2.addComponent(new CircleCollider(ball2, new Vector2(0, 0), 25, new Vector2(
 // player.addComponent(new Rigidbody(player, player.getComponent(BoxCollider), true));
 // player.getComponent(BoxCollider).rigidbody = player.getComponent(Rigidbody);
 
-
 let gameIsRunning = true;
-let moveSpeed = 35;
+let moveSpeed = 250;
 // let multiplier = 1;
 
 let distanceVec = new Vector2(0, 0);
-
 requestAnimationFrame(update);
 function update(){
 
@@ -87,19 +85,26 @@ function update(){
         ball1.getComponent(CircleCollider).acceleration.y = -moveSpeed;
     }
 
-    ball1.getComponent(CircleCollider).acceleration = ball1.getComponent(CircleCollider).acceleration.getNormalizedVector();
+    ball1.getComponent(CircleCollider).acceleration = ball1.getComponent(CircleCollider).acceleration.unit();
     ball1.getComponent(CircleCollider).acceleration = Vector2.multiply(ball1.getComponent(CircleCollider).acceleration, moveSpeed);
     ball1.getComponent(CircleCollider).update();
-    
+
+    ball2.getComponent(CircleCollider).update();
     // Camera.position = new Vector2(player.transform.position.x, player.transform.position.y);
     if(gameIsRunning){
         Camera.update();
         ball1.getComponent(CircleCollider).display();
         // distanceVec = Vector2.subtract(ball2.getComponent(CircleCollider).position, ball1.getComponent(CircleCollider).position);
         // ctx.fillText("Distance: " + distanceVec.getMagnitude(), 450, 250);
-        if(coll_det_bb(ball1.getComponent(CircleCollider), ball2.getComponent(CircleCollider))){
-            pen_res_bb(ball1.getComponent(CircleCollider), ball2.getComponent(CircleCollider));
+
+
+        for(let i = 0; i < CircleCollider.balls.length; i++){
+
         }
+        if(coll_det_bb(ball1.getComponent(CircleCollider), ball2.getComponent(CircleCollider))){
+            pen_res_bb(ball1.getComponent(CircleCollider), ball2.getComponent(CircleCollider));;
+        }
+
         requestAnimationFrame(update);
     }
 }

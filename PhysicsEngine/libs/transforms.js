@@ -22,7 +22,7 @@ class Vector2{
         return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
     }
 
-    getNormalizedVector(){
+    unit(){
         if(this.getMagnitude() === 0){
             return Vector2.zero();
         }
@@ -31,7 +31,7 @@ class Vector2{
     }
 
     normal(){
-        return new Vector2(-this.y, this.x).getNormalizedVector();
+        return new Vector2(-this.y, this.x).unit();
     }
 
     addToThis(vector2){

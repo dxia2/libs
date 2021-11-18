@@ -247,10 +247,22 @@
 function pen_res_bb(b1, b2){
     let dist = Vector2.subtract(b1.position, b2.position);
     let pen_depth = b1.radius + b2.radius - dist.getMagnitude();
-    let pen_res = Vector2.multiply(dist.getNormalizedVector(), pen_depth / 2);
-    b1.position.addToThis(pen_res);
-    b2.position.addToThis(pen_res.multiplyThis(-1));
-    console.log(Vector2.add(b1.position, pen_res));
+    let pen_res = Vector2.multiply(dist.unit(), pen_depth / 2);
+
+    b1.update();
+    b2.update();
+
+    b1.changePosition(Vector2.add(b1.position, pen_res));
+    pen_res = Vector2.multiply(pen_res, -1);
+    b2.changePosition(Vector2.add(b2.position, pen_res));
+
+    // b1.gameObject.transform.position.x += pen_res.x;
+    // b1.gameObject.transform.position.y += pen_res.y;
+    // pen_res = Vector2.multiply(pen_res, -1);
+    // b2.gameObject.transform.position.x += pen_res.x;
+    // b2.gameObject.transform.position.y += pen_res.y;
+    console.log(b1.gameObject.transform.position);
+    console.log(b1.position);
 }
 
 function coll_det_bb(b1, b2){
@@ -270,21 +282,29 @@ class CircleCollider{
     //------
     velocity = new Vector2(0, 0);
     acceleration = new Vector2(0, 0);
+    drag = new Vector2(0, 0);
 
-    constructor(gameObject, offset, radius, velocity = new Vector2(0, 0), acceleration = new Vector2(0, 0)){
+    static balls = [];
+
+    constructor(gameObject, offset, radius, velocity, acceleration, drag){
         this.gameObject = gameObject;
         this.offset = offset;
         this.radius = radius;
         this.velocity = velocity;
         this.acceleration = acceleration;
+        this.drag = drag;
+
+        CircleCollider.balls.push(this);
 
         this.calculatePosition();
     }
 
     update(){
-        this.calculatePosition();
+
         this.updateVelocity();
+        this.calculatePosition();
         this.updatePosition();
+
     }
 
     calculatePosition(){
@@ -292,6 +312,8 @@ class CircleCollider{
         this.position.y = this.gameObject.transform.position.y + this.offset.y;
     }
     updateVelocity(){
+        this.velocity.x *= 1-this.drag * deltaTime;
+        this.velocity.y *= 1-this.drag * deltaTime;
         this.velocity.x += this.acceleration.x * deltaTime;
         this.velocity.y += this.acceleration.y * deltaTime;
     }
@@ -304,4 +326,9 @@ class CircleCollider{
         Vector2.drawVec(this.position, Vector2.add(this.position, this.acceleration), "blue");
         Vector2.drawVec(this.position, Vector2.add(Vector2.multiply(this.acceleration.normal(), 50), this.position), "red");
     }
+
+    changePosition(newPos){
+        this.gameObject.transform.position.x = newPos.x - this.offset.x;
+        this.gameObject.transform.position.y = newPos.y - this.offset.y;
+    }   
 }
