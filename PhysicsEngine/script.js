@@ -10,12 +10,17 @@ Camera.initialize(canvas, ctx, new Vector2(0, 0), new Vector2(600, 400))
 
 let ball1 = new GameObject();
 ball1.addComponent(new SpriteRenderer(ball1, ctx, circleImg, 50, 50));
-ball1.addComponent(new CircleCollider(ball1, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0.6));
+ball1.addComponent(new CircleCollider(ball1, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0.6, 2));
 ball1.transform.position = new Vector2(0, 60);
 
 let ball2 = new GameObject();
 ball2.addComponent(new SpriteRenderer(ball2, ctx, circleImg, 50, 50));
-ball2.addComponent(new CircleCollider(ball2, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0.6));
+ball2.addComponent(new CircleCollider(ball2, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0.6, 2));
+
+let ball3 = new GameObject();
+ball3.transform.position.x += 50
+ball3.addComponent(new SpriteRenderer(ball3, ctx, circleImg, 100, 100));
+ball3.addComponent(new CircleCollider(ball3, new Vector2(0, 0), 50, new Vector2(0, 0), new Vector2(0, 0), 0.6, 0));
 
 // let gameobject = new GameObject();
 // gameobject.transform.position.x = 0;
@@ -87,9 +92,11 @@ function update(){
 
     ball1.getComponent(CircleCollider).acceleration = ball1.getComponent(CircleCollider).acceleration.unit();
     ball1.getComponent(CircleCollider).acceleration = Vector2.multiply(ball1.getComponent(CircleCollider).acceleration, moveSpeed);
-    ball1.getComponent(CircleCollider).update();
+    // ball1.getComponent(CircleCollider).update();
 
-    ball2.getComponent(CircleCollider).update();
+    // ball2.getComponent(CircleCollider).update();
+
+    // ball3.getComponent(CircleCollider).update();
     // Camera.position = new Vector2(player.transform.position.x, player.transform.position.y);
     if(gameIsRunning){
         Camera.update();
@@ -99,11 +106,17 @@ function update(){
 
 
         for(let i = 0; i < CircleCollider.balls.length; i++){
+            for(let j = i+1; j < CircleCollider.balls.length; j++){
+                if(coll_det_bb(CircleCollider.balls[i], CircleCollider.balls[j])){
+                    pen_res_bb(CircleCollider.balls[i], CircleCollider.balls[j]);
+                    coll_res_bb(CircleCollider.balls[i], CircleCollider.balls[j]);
+                }
 
+            }
+            CircleCollider.balls[i].display();
+            CircleCollider.balls[i].update();
         }
-        if(coll_det_bb(ball1.getComponent(CircleCollider), ball2.getComponent(CircleCollider))){
-            pen_res_bb(ball1.getComponent(CircleCollider), ball2.getComponent(CircleCollider));;
-        }
+
 
         requestAnimationFrame(update);
     }

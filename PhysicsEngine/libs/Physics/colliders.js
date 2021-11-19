@@ -247,22 +247,13 @@
 function pen_res_bb(b1, b2){
     let dist = Vector2.subtract(b1.position, b2.position);
     let pen_depth = b1.radius + b2.radius - dist.getMagnitude();
-    let pen_res = Vector2.multiply(dist.unit(), pen_depth / 2);
+    let pen_res = Vector2.multiply(dist.unit(), pen_depth / (b1.inv_m + b2.inv_m));
 
-    b1.update();
-    b2.update();
+    b1.calculatePosition();
+    b2.calculatePosition();
 
-    b1.changePosition(Vector2.add(b1.position, pen_res));
-    pen_res = Vector2.multiply(pen_res, -1);
-    b2.changePosition(Vector2.add(b2.position, pen_res));
-
-    // b1.gameObject.transform.position.x += pen_res.x;
-    // b1.gameObject.transform.position.y += pen_res.y;
-    // pen_res = Vector2.multiply(pen_res, -1);
-    // b2.gameObject.transform.position.x += pen_res.x;
-    // b2.gameObject.transform.position.y += pen_res.y;
-    console.log(b1.gameObject.transform.position);
-    console.log(b1.position);
+    b1.changePosition(Vector2.add(b1.position, Vector2.multiply(pen_res, b1.inv_m)));
+    b2.changePosition(Vector2.add(b2.position, Vector2.multiply(pen_res, -b2.inv_m)));
 }
 
 function coll_det_bb(b1, b2){
@@ -271,6 +262,21 @@ function coll_det_bb(b1, b2){
     }else{
         return false;
     }
+}
+
+function coll_res_bb(b1, b2){
+    let normal = Vector2.subtract(b1.position, b2.position).unit();
+    let relVel = Vector2.subtract(b1.velocity, b2.velocity);
+    let sepVel = Vector2.dot(relVel, normal);
+    let new_sepVel = -sepVel * Math.min(b1.elasticity, b2.elasticity);
+    let sepVelVec = Vector2.multiply(normal, new_sepVel);
+
+    let vsep_diff = new_sepVel - sepVel;
+    let impulse = vsep_diff / (b1.inv_m + b2.inv_m);
+    let impulseVec = Vector2.multiply(normal, impulse);
+
+    b1.velocity = Vector2.add(b1.velocity, Vector2.multiply(impulseVec, b1.inv_m));
+    b2.velocity = Vector2.add(b2.velocity, Vector2.multiply(impulseVec, -b2.inv_m));
 }
 
 class CircleCollider{
@@ -283,16 +289,27 @@ class CircleCollider{
     velocity = new Vector2(0, 0);
     acceleration = new Vector2(0, 0);
     drag = new Vector2(0, 0);
+    mass = 1;
+    elasticity = 1;
+    get inv_m(){
+        if(this.mass === 0){
+            return 0;
+        }else{
+            return 1 / this.mass;
+        }
+    }
 
     static balls = [];
 
-    constructor(gameObject, offset, radius, velocity, acceleration, drag){
+
+    constructor(gameObject, offset, radius, velocity, acceleration, drag, mass){
         this.gameObject = gameObject;
         this.offset = offset;
         this.radius = radius;
         this.velocity = velocity;
         this.acceleration = acceleration;
         this.drag = drag;
+        this.mass = mass;
 
         CircleCollider.balls.push(this);
 
@@ -302,9 +319,8 @@ class CircleCollider{
     update(){
 
         this.updateVelocity();
-        this.calculatePosition();
         this.updatePosition();
-
+        this.calculatePosition();
     }
 
     calculatePosition(){
