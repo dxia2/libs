@@ -22,59 +22,20 @@ ball3.transform.position.x += 50
 ball3.addComponent(new SpriteRenderer(ball3, ctx, circleImg, 100, 100));
 ball3.addComponent(new CircleCollider(ball3, new Vector2(0, 0), 50, new Vector2(0, 0), new Vector2(0, 0), 0.6, 0));
 
-// let gameobject = new GameObject();
-// gameobject.transform.position.x = 0;
-// gameobject.transform.position.y = 0;
-// gameobject.transform.rotation = 135;
-// gameobject.addComponent(new SpriteRenderer(gameobject, ctx, pepeImg, 200, 50));
+let wall1 = new GameObject();
+wall1.transform.position = new Vector2(100, 0);
+wall1.addComponent(new LineRenderer(wall1, ctx, new Vector2(0, 0), new Vector2(50, 50)));
+wall1.addComponent(new Wall(wall1, new Vector2(0, 0), new Vector2(50, 50)));
 
-// let gameobject2 = new GameObject("wall");
-// gameobject2.transform.position.x = 100;
-// gameobject2.transform.position.y = -100;
-// gameobject2.transform.rotation = 0;
-// gameobject2.addComponent(new SpriteRenderer(gameobject2, ctx, pepeImg, 300, 50));
-// gameobject2.addComponent(new BoxCollider(gameobject2, gameobject2.transform.position, new Vector2(300, 50)));
-// // gameobject2.addComponent(new Rigidbody(gameobject2, gameobject2.getComponent(BoxCollider), true));
-// // gameobject2.getComponent(BoxCollider).rigidbody = gameobject2.getComponent(Rigidbody);
-
-// // let gameobject3 = new GameObject("box");
-// // gameobject3.transform.position.x = 100;
-// // gameobject3.transform.position.y = 50;
-// // gameobject3.addComponent(new SpriteRenderer(gameobject3, ctx, pepeImg, 50, 50));
-// // gameobject3.addComponent(new BoxCollider(gameobject3, gameobject3.transform.position, new Vector2(50, 50)));
-// // gameobject3.addComponent(new Rigidbody(gameobject3, gameobject3.getComponent(BoxCollider), true));
-// // gameobject3.getComponent(BoxCollider).rigidbody = gameobject3.getComponent(Rigidbody);
-
-// let playerMoveSpeed = 200;
-// let player = new GameObject("Player");
-// player.transform.rotation = -100;
-// player.addComponent(new SpriteRenderer(player, ctx, pepeImg, 50, 50));
-// player.addComponent(new BoxCollider(player, player.transform.position, new Vector2(50, 50)));
-// player.getComponent(BoxCollider).collisionFunctions.onCollisionEnterFunctions.push(function(){console.log("A")});
-// player.getComponent(BoxCollider).collisionFunctions.onCollisionExitFunctions.push(function(){console.log("PODOPOSPPPP")});
-// player.addComponent(new Rigidbody(player, player.getComponent(BoxCollider), true));
-// player.getComponent(BoxCollider).rigidbody = player.getComponent(Rigidbody);
+ball1.getComponent(CircleCollider).elasticity = 0;
 
 let gameIsRunning = true;
 let moveSpeed = 250;
-// let multiplier = 1;
 
 let distanceVec = new Vector2(0, 0);
 requestAnimationFrame(update);
 function update(){
 
-    // if(gameobject.transform.position.x > 200){
-    //     multiplier = -1;
-    // }else if(gameobject.transform.position.x < -200){
-    //     multiplier = 1;
-    // }
-    // gameobject.transform.position.x += deltaTime * 200 * multiplier;
-    // gameobject.transform.rotation += deltaTime * 200;
-
-
-    //screenShake();
-    // player.getComponent(Rigidbody).velocity.x = 0;
-    // player.getComponent(Rigidbody).velocity.y = 0;
     ball1.getComponent(CircleCollider).acceleration.x = 0;
     ball1.getComponent(CircleCollider).acceleration.y = 0;
     if(keysPressed["a"]){
@@ -98,6 +59,9 @@ function update(){
 
     // ball3.getComponent(CircleCollider).update();
     // Camera.position = new Vector2(player.transform.position.x, player.transform.position.y);
+
+
+
     if(gameIsRunning){
         Camera.update();
         ball1.getComponent(CircleCollider).display();
@@ -115,6 +79,20 @@ function update(){
             }
             CircleCollider.balls[i].display();
             CircleCollider.balls[i].update();
+        }
+
+        for(let i = 0; i < Wall.walls.length; i++){
+            Wall.walls[i].update();
+        }
+        // Vector2.drawVec(
+        //     ball1.getComponent(CircleCollider).position,
+        //     closestPointBW(ball1.getComponent(CircleCollider), wall1.getComponent(Wall)),
+        //     "red"
+        // )
+
+        if(coll_det_bw(ball1.getComponent(CircleCollider), wall1.getComponent(Wall))){
+            pen_res_bw(ball1.getComponent(CircleCollider), wall1.getComponent(Wall));
+            coll_res_bw(ball1.getComponent(CircleCollider), wall1.getComponent(Wall));
         }
 
 

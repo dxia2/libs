@@ -279,6 +279,44 @@ function coll_res_bb(b1, b2){
     b2.velocity = Vector2.add(b2.velocity, Vector2.multiply(impulseVec, -b2.inv_m));
 }
 
+function closestPointBW(b1, w1){
+    let ballToWallStart = Vector2.subtract(w1.pos1, b1.position);
+    if(Vector2.dot(w1.wallUnit(), ballToWallStart) > 0){
+        return w1.pos1;
+    }
+
+    let wallEndToBall = Vector2.subtract(b1.position, w1.pos2);
+    if(Vector2.dot(w1.wallUnit(), wallEndToBall) > 0){
+        return w1.pos2;
+    }
+
+    let closestDist = Vector2.dot(w1.wallUnit(), ballToWallStart);
+    let closestVect = Vector2.multiply(w1.wallUnit(), closestDist);
+
+    return Vector2.subtract(w1.pos1, closestVect);
+}
+
+function coll_det_bw(b1, w1){
+    let ballToClosest = Vector2.subtract(closestPointBW(b1, w1), b1.position);
+    if(ballToClosest.getMagnitude() <= b1.radius){
+        return true;
+    }
+}
+
+function pen_res_bw(b1, w1){
+    let penVect = Vector2.subtract(b1.position, closestPointBW(b1, w1));
+    b1.changePosition(Vector2.add(b1.position, Vector2.multiply(penVect.unit(), b1.radius - penVect.getMagnitude())));
+}
+
+function coll_res_bw(b1, w1){
+    let normal = Vector2.subtract(b1.position, closestPointBW(b1, w1)).unit();
+    let sepVel = Vector2.dot(b1.velocity, normal);
+    let new_sepVel = -sepVel * b1.elasticity;
+    let vsep_diff = sepVel - new_sepVel;
+    b1.velocity = Vector2.add(b1.velocity, Vector2.multiply(normal, -vsep_diff));
+    
+}
+
 class CircleCollider{
     gameObject;
     offset = new Vector2(0, 0);
@@ -341,10 +379,40 @@ class CircleCollider{
         Vector2.drawVec(this.position, Vector2.add(this.position, this.velocity), "green");
         Vector2.drawVec(this.position, Vector2.add(this.position, this.acceleration), "blue");
         Vector2.drawVec(this.position, Vector2.add(Vector2.multiply(this.acceleration.normal(), 50), this.position), "red");
+        ctx.fillText("m = " + this.mass, this.position.x - (Camera.position.x - Camera.size.x / 2), -(this.position.y - Camera.position.y - Camera.size.y / 2))
+        ctx.fillText("e = " + this.elasticity, this.position.x - (Camera.position.x - Camera.size.x / 2), -(this.position.y - 10 - Camera.position.y - Camera.size.y / 2))
     }
 
     changePosition(newPos){
         this.gameObject.transform.position.x = newPos.x - this.offset.x;
         this.gameObject.transform.position.y = newPos.y - this.offset.y;
     }   
+}
+
+class Wall{
+    gameObject;
+    pos1 = new Vector2(0, 0);
+    pos2 = new Vector2(0, 0);
+
+    offset1;
+    offset2;
+
+    static walls = [];
+    constructor(gameObject, pos1, pos2){
+        this.gameObject = gameObject;
+        this.offset1 = pos1;
+        this.offset2 = pos2;
+
+        this.update();
+        Wall.walls.push(this);
+    }
+
+    update(){
+        this.pos1 = Vector2.add(this.gameObject.transform.position, this.offset1);
+        this.pos2 = Vector2.add(this.gameObject.transform.position, this.offset2);
+    }
+
+    wallUnit(){
+        return Vector2.subtract(this.pos2, this.pos1).unit();
+    }
 }

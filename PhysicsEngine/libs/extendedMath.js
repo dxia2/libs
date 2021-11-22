@@ -1,4 +1,8 @@
 class ExtendedMath{
+    static randInt(min, max){
+        return Math.floor(Math.random() * (max-min+1)) + min;
+    }
+
     static degToRad(deg){
         return deg * (Math.PI / 180);
     }

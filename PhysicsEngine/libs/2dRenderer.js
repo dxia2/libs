@@ -3,6 +3,7 @@ class Camera{
     static canvas;
     static renderers = [];
     static position = new Vector2(0, 0);
+    // For now camera has to be the same size as canvas
     static size = new Vector2(0, 0);
 
     static initialize(canvas, ctx, position, size){
@@ -48,6 +49,27 @@ class SpriteRenderer extends Renderer{
     }
 }
 
-class BasicRenderer extends Renderer{
+class LineRenderer extends Renderer{
+    // Local coordinates in relation to the gameObject
+    position1; 
+    position2;
+    color = "black";
 
+    constructor(gameObject, canvasCtx, position1, position2){
+        super();
+        this.gameObject = gameObject;
+        this.canvasCtx = canvasCtx;
+        this.position1 = position1;
+        this.position2 = position2;
+        Camera.renderers.push(this);
+    }
+
+    draw(){
+        super.draw();
+        this.canvasCtx.beginPath();
+        this.canvasCtx.moveTo(this.position1.x + this.gameObject.transform.position.x - (Camera.position.x - Camera.size.x / 2), -((this.position1.y  + this.gameObject.transform.position.y) - Camera.position.y - Camera.size.y / 2));
+        this.canvasCtx.lineTo(this.position2.x + this.gameObject.transform.position.x  - (Camera.position.x - Camera.size.x / 2), -((this.position2.y  + this.gameObject.transform.position.y) - Camera.position.y - Camera.size.y / 2));
+        this.canvasCtx.strokeStyle = this.color;
+        this.canvasCtx.stroke();
+    }
 }
