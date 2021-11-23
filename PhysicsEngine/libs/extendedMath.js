@@ -24,8 +24,6 @@ class ExtendedMath{
         return new Vector2(newX, newY);
     }
 
-
-
     static projShapeOntoAxis(axis, collider){
         let min = ExtendedMath.vector2DotProduct(axis, collider.getVertexWorldPos(0));
         let max = min;
@@ -51,5 +49,29 @@ class ExtendedMath{
     static round(number, precision){
         let factor = 10**precision;
         return Math.round(number * factor) / factor;
+    }
+}
+
+class Matrix{
+    rows;
+    cols;
+    data;
+    constructor(rows, cols){
+        this.rows = rows;
+        this.cols = cols;
+        this.data = [];
+        for(let i = 0; i < this.rows; i++){
+            this.data[i] = [];
+            for (let j = 0; j < this.cols; j++){
+                this.data[i][j] = 0;
+            }
+        }
+    }
+
+    multiplyVec(vec){
+        let result = new Vector2(0, 0);
+        result.x = this.data[0][0] * vec.x + this.data[0][1] * vec.y;
+        result.y = this.data[1][0] * vec.x + this.data[0][1] * vec.y;
+        return result;
     }
 }

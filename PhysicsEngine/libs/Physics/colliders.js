@@ -317,6 +317,15 @@ function coll_res_bw(b1, w1){
     
 }
 
+function rotMx(angle){
+    let mx = new Matrix(2, 2);
+    mx.data[0][0] = Math.cos(angle);
+    mx.data[0][1] = -Math.sin(angle);
+    mx.data[1][0] = Math.sin(angle);
+    mx.data[1][1] = Math.cos(angle);
+    return mx;
+}
+
 class CircleCollider{
     gameObject;
     offset = new Vector2(0, 0);
@@ -393,9 +402,16 @@ class Wall{
     gameObject;
     pos1 = new Vector2(0, 0);
     pos2 = new Vector2(0, 0);
+    refPos1;
+    refPos2;
+    refUnit;
 
     offset1;
     offset2;
+
+    center;
+    length;
+    angle = 0;
 
     static walls = [];
     constructor(gameObject, pos1, pos2){
@@ -403,13 +419,28 @@ class Wall{
         this.offset1 = pos1;
         this.offset2 = pos2;
 
+        this.pos1 = Vector2.add(this.gameObject.transform.position, pos1);
+        this.pos2 = Vector2.add(this.gameObject.transform.position, pos2);
+
+        this.refPos1 = this.pos1;
+        this.refPos2 = this.pos2;
+        this.refUnit = Vector2.subtract(this.pos2, this.pos1).unit();
+
         this.update();
         Wall.walls.push(this);
     }
 
     update(){
-        this.pos1 = Vector2.add(this.gameObject.transform.position, this.offset1);
-        this.pos2 = Vector2.add(this.gameObject.transform.position, this.offset2);
+
+
+        
+
+        let rotMat = rotMx(this.angle);
+        let newDir = rotMat.multiplyVec(this.refUnit);
+        this.pos1 = Vector2.add(this.center, Vector2.multiply(newDir, -this.length/2));
+        this.pos2 = Vector2.add(this.center, Vector2.multiply(newDir, this.length/2));
+
+
     }
 
     wallUnit(){
