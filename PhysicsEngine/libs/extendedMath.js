@@ -71,7 +71,7 @@ class Matrix{
     multiplyVec(vec){
         let result = new Vector2(0, 0);
         result.x = this.data[0][0] * vec.x + this.data[0][1] * vec.y;
-        result.y = this.data[1][0] * vec.x + this.data[0][1] * vec.y;
+        result.y = this.data[1][0] * vec.x + this.data[1][1] * vec.y;
         return result;
     }
 }

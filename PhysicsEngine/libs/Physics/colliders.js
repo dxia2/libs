@@ -280,20 +280,20 @@ function coll_res_bb(b1, b2){
 }
 
 function closestPointBW(b1, w1){
-    let ballToWallStart = Vector2.subtract(w1.pos1, b1.position);
+    let ballToWallStart = Vector2.subtract(w1.start, b1.position);
     if(Vector2.dot(w1.wallUnit(), ballToWallStart) > 0){
-        return w1.pos1;
+        return w1.start;
     }
 
-    let wallEndToBall = Vector2.subtract(b1.position, w1.pos2);
+    let wallEndToBall = Vector2.subtract(b1.position, w1.end);
     if(Vector2.dot(w1.wallUnit(), wallEndToBall) > 0){
-        return w1.pos2;
+        return w1.end;
     }
 
     let closestDist = Vector2.dot(w1.wallUnit(), ballToWallStart);
     let closestVect = Vector2.multiply(w1.wallUnit(), closestDist);
 
-    return Vector2.subtract(w1.pos1, closestVect);
+    return Vector2.subtract(w1.start, closestVect);
 }
 
 function coll_det_bw(b1, w1){
@@ -388,6 +388,7 @@ class CircleCollider{
         Vector2.drawVec(this.position, Vector2.add(this.position, this.velocity), "green");
         Vector2.drawVec(this.position, Vector2.add(this.position, this.acceleration), "blue");
         Vector2.drawVec(this.position, Vector2.add(Vector2.multiply(this.acceleration.normal(), 50), this.position), "red");
+        ctx.fillStyle = "black";
         ctx.fillText("m = " + this.mass, this.position.x - (Camera.position.x - Camera.size.x / 2), -(this.position.y - Camera.position.y - Camera.size.y / 2))
         ctx.fillText("e = " + this.elasticity, this.position.x - (Camera.position.x - Camera.size.x / 2), -(this.position.y - 10 - Camera.position.y - Camera.size.y / 2))
     }
@@ -397,53 +398,100 @@ class CircleCollider{
         this.gameObject.transform.position.y = newPos.y - this.offset.y;
     }   
 }
-
+// WALLS DONT MOVE WITH THEIR GAMEOBJECT!!!!
+//FIX LATER
 class Wall{
     gameObject;
-    pos1 = new Vector2(0, 0);
-    pos2 = new Vector2(0, 0);
-    refPos1;
-    refPos2;
-    refUnit;
+    start;
+    end;
 
-    offset1;
-    offset2;
+    refStart;
+    refEnd;
+    refUnit;
 
     center;
     length;
     angle = 0;
+    angVel = 0;
 
     static walls = [];
-    constructor(gameObject, pos1, pos2){
+    constructor(gameObject, start, end){
         this.gameObject = gameObject;
-        this.offset1 = pos1;
-        this.offset2 = pos2;
-
-        this.pos1 = Vector2.add(this.gameObject.transform.position, pos1);
-        this.pos2 = Vector2.add(this.gameObject.transform.position, pos2);
-
-        this.refPos1 = this.pos1;
-        this.refPos2 = this.pos2;
-        this.refUnit = Vector2.subtract(this.pos2, this.pos1).unit();
+        this.start = start;
+        this.end = end;
+        this.center = Vector2.multiply(Vector2.add(this.start, this.end), 0.5);
+        this.length = Vector2.subtract(this.end, this.start).getMagnitude();
+        this.refStart = start;
+        this.refEnd = end;
+        this.refUnit = Vector2.subtract(this.end, this.start).unit();
+        this.angle = 0;
+        this.angVel = 0;
 
         this.update();
         Wall.walls.push(this);
     }
 
     update(){
-
-
-        
+        this.angle += this.angVel;
+        this.angVel *= 0.96;
 
         let rotMat = rotMx(this.angle);
         let newDir = rotMat.multiplyVec(this.refUnit);
-        this.pos1 = Vector2.add(this.center, Vector2.multiply(newDir, -this.length/2));
-        this.pos2 = Vector2.add(this.center, Vector2.multiply(newDir, this.length/2));
+        this.start = Vector2.add(this.center, Vector2.multiply(newDir, -this.length/2));
+        this.end = Vector2.add(this.center, Vector2.multiply(newDir, this.length/2));
+
 
 
     }
 
     wallUnit(){
-        return Vector2.subtract(this.pos2, this.pos1).unit();
+        return Vector2.subtract(this.end, this.start).unit();
+    }
+}
+
+class Capsule{
+    gameObject;
+    start;
+    end;
+    radius;
+    refDir;
+    refAngle;
+
+    acceleration;
+    velocity;
+    postion;
+
+    static capsules = [];
+    constructor(gameObject, start, end, radius){
+        this.gameObject = gameObject;
+        this.start = start;
+        this.end = end;
+        this.radius = radius;
+
+        this.refDir = Vector2.subtract(this.end, this.start).unit();
+        this.refAngle = Math.acos(Vector2.dot(this.refDir, new Vector2(1, 0)));
+        if(Vector2.cross(this.refDir, new Vector2(1, 0)) > 0){
+            this.refAngle *= -1;
+        }
+
+        this.acceleration = new Vector2(0, 0);
+        this.velocity = new Vector2(0, 0);
+
+        Capsule.capsules.push(this);
+    }
+
+    draw(){
+        ctx.beginPath();
+        ctx.arc(this.start.x + this.gameObject.transform.position.x - (Camera.position.x - Camera.size.x / 2), -(this.start.y + this.gameObject.transform.position.y - Camera.position.y - Camera.size.y / 2), this.radius, this.refAngle + Math.PI / 2, this.refAngle + 3 * Math.PI / 2);
+        ctx.arc(this.end.x + this.gameObject.transform.position.x - (Camera.position.x - Camera.size.x / 2), -(this.end.y + this.gameObject.transform.position.y - Camera.position.y - Camera.size.y / 2), this.radius, this.refAngle - Math.PI / 2, this.refAngle + Math.PI / 2);
+        ctx.closePath();
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        ctx.fillStyle = "lightgreen";
+        ctx.fill();
+    }
+
+    update(){
+
     }
 }

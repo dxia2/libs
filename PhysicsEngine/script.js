@@ -23,32 +23,35 @@ ball3.addComponent(new SpriteRenderer(ball3, ctx, circleImg, 100, 100));
 ball3.addComponent(new CircleCollider(ball3, new Vector2(0, 0), 50, new Vector2(0, 0), new Vector2(0, 0), 0.6, 10));
 
 let wall1 = new GameObject();
-wall1.transform.position = new Vector2(-290, 0);
-wall1.addComponent(new LineRenderer(wall1, ctx, new Vector2(0, 200), new Vector2(0, -200)));
-wall1.addComponent(new Wall(wall1, new Vector2(0, 200), new Vector2(0, -200)));
+wall1.addComponent(new Wall(wall1, new Vector2(-300, 200), new Vector2(-300, -200)));
+wall1.name = "wall1";
 
 let wall2 = new GameObject();
-wall2.transform.position = new Vector2(300, 0);
-wall2.addComponent(new LineRenderer(wall2, ctx, new Vector2(0, 200), new Vector2(50, -200)));
-wall2.addComponent(new Wall(wall2, new Vector2(0, 200), new Vector2(0, -200)));
+
+wall2.addComponent(new LineRenderer(wall2, ctx, new Vector2(300, 200), new Vector2(300, -200)));
+wall2.addComponent(new Wall(wall2, new Vector2(300, 200), new Vector2(300, -200)));
+wall2.name = "wall2";
 
 let wall3 = new GameObject();
-wall3.transform.position = new Vector2(0, 200);
-wall3.addComponent(new LineRenderer(wall3, ctx, new Vector2(-300, 0), new Vector2(300, 0)));
-wall3.addComponent(new Wall(wall3, new Vector2(-300, 0), new Vector2(300, 0)));
+
+wall3.addComponent(new LineRenderer(wall3, ctx, new Vector2(-300, -200), new Vector2(300, -200)));
+wall3.addComponent(new Wall(wall3, new Vector2(-300, -200), new Vector2(300, -200)));
 
 let wall4 = new GameObject();
-wall4.transform.position = new Vector2(0, -200);
-wall4.addComponent(new LineRenderer(wall4, ctx, new Vector2(-300, 0), new Vector2(300, 0)));
-wall4.addComponent(new Wall(wall4, new Vector2(-300, 0), new Vector2(300, 0)));
+
+wall4.addComponent(new LineRenderer(wall4, ctx, new Vector2(-300, 200), new Vector2(300, 200)));
+wall4.addComponent(new Wall(wall4, new Vector2(-300, 200), new Vector2(300, 200)));
 
 let wall5 = new GameObject();
-wall5.transform.position = new Vector2(0, 0);
+
 wall5.addComponent(new Wall(wall5, new Vector2(-50, 0), new Vector2(50, 0)));
 let wall5wall = wall5.getComponent(Wall)
-wall5.addComponent(new LineRenderer(wall5, ctx, wall5wall.pos1, wall5wall.pos2));
+wall5.addComponent(new LineRenderer(wall5, ctx, wall5wall.start, wall5wall.end));
 
-console.log(Vector2.distBtw2Points(new Vector2(-290, 200), new Vector2(-290, -200)))
+let caps1 = new GameObject();
+caps1.addComponent(new Capsule(caps1, new Vector2(0, 0), new Vector2(200, 0), 30));
+caps1.transform.position.y = 50;
+caps1.transform.position.x = 100;
 
 let gameIsRunning = true;
 let moveSpeed = 250;
@@ -61,15 +64,14 @@ function update(){
     ball1.getComponent(CircleCollider).acceleration.y = 0;
     if(keysPressed["a"]){
         ball1.getComponent(CircleCollider).acceleration.x = -moveSpeed;
-        wall5.getComponent(Wall).angle -= 0.1;
-        wall5.getComponent(LineRenderer).position1 = wall5wall.pos1;
-        wall5.getComponent(LineRenderer).position2 = wall5wall.pos2;
+        wall5.getComponent(Wall).angVel -= 0.01;
+
     }
     if(keysPressed["d"]){
         ball1.getComponent(CircleCollider).acceleration.x = moveSpeed;
-        wall5.getComponent(Wall).angle += 0.1;
-        wall5.getComponent(LineRenderer).position1 = wall5wall.pos1;
-        wall5.getComponent(LineRenderer).position2 = wall5wall.pos2;
+        wall5.getComponent(Wall).angVel += 0.01;
+
+
     }
     if(keysPressed["w"]){
         ball1.getComponent(CircleCollider).acceleration.y = moveSpeed;
@@ -77,8 +79,7 @@ function update(){
     if(keysPressed["s"]){
         ball1.getComponent(CircleCollider).acceleration.y = -moveSpeed;
     }
-    console.log(wall1.getComponent(Wall).length);
-    console.log(wall1.getComponent(Wall).pos1.x + ", " + wall1.getComponent(Wall).pos1.y)
+
     ball1.getComponent(CircleCollider).acceleration = ball1.getComponent(CircleCollider).acceleration.unit();
     ball1.getComponent(CircleCollider).acceleration = Vector2.multiply(ball1.getComponent(CircleCollider).acceleration, moveSpeed);
     // ball1.getComponent(CircleCollider).update();
@@ -88,7 +89,8 @@ function update(){
     // ball3.getComponent(CircleCollider).update();
     // Camera.position = new Vector2(player.transform.position.x, player.transform.position.y);
 
-
+    wall5.getComponent(LineRenderer).position1 = wall5wall.start;
+    wall5.getComponent(LineRenderer).position2 = wall5wall.end;
 
     if(gameIsRunning){
         Camera.update();
@@ -118,7 +120,10 @@ function update(){
             CircleCollider.balls[i].update();
 
         }
-
+        for(let i = 0; i < Capsule.capsules.length; i++){
+            Capsule.capsules[i].draw();
+            Capsule.capsules[i].update();
+        }
 
         // Vector2.drawVec(
         //     ball1.getComponent(CircleCollider).position,

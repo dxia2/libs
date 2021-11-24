@@ -66,6 +66,10 @@ class Vector2{
         return (point1.x * point2.x) + (point1.y * point2.y);
     }
 
+    static cross(vector1, vector2){
+        return vector1.x * vector2.y - vector1.y * vector2.x;
+    }
+
     static drawVec(vector1, vector2, color){
         ctx.beginPath();
         ctx.moveTo(vector1.x - (Camera.position.x - Camera.size.x / 2), -(vector1.y - Camera.position.y - Camera.size.y / 2));
