@@ -459,16 +459,26 @@ class Capsule{
 
     acceleration;
     velocity;
-    postion;
+    position;
+    length;
+    dir;
+    drag;
+    offset;
+    angle;
+    angVel;
 
     static capsules = [];
-    constructor(gameObject, start, end, radius){
+    constructor(gameObject, start, end, radius, drag){
         this.gameObject = gameObject;
-        this.start = start;
-        this.end = end;
         this.radius = radius;
 
-        this.refDir = Vector2.subtract(this.end, this.start).unit();
+        this.start = start;
+        this.end = end;
+
+        let relativeEnd = new Vector2(this.end.x + this.gameObject.transform.position.x - (Camera.position.x - Camera.size.x / 2), -(this.end.y + this.gameObject.transform.position.y - Camera.position.y - Camera.size.y / 2));
+        let relativeStart = new Vector2(this.start.x + this.gameObject.transform.position.x - (Camera.position.x - Camera.size.x / 2), -(this.start.y + this.gameObject.transform.position.y - Camera.position.y - Camera.size.y / 2));
+
+        this.refDir = Vector2.subtract(relativeEnd, relativeStart).unit();
         this.refAngle = Math.acos(Vector2.dot(this.refDir, new Vector2(1, 0)));
         if(Vector2.cross(this.refDir, new Vector2(1, 0)) > 0){
             this.refAngle *= -1;
@@ -476,14 +486,23 @@ class Capsule{
 
         this.acceleration = new Vector2(0, 0);
         this.velocity = new Vector2(0, 0);
+        this.position = Vector2.add(Vector2.multiply(Vector2.add(this.start, this.end), 0.5), this.gameObject.transform.position);
+        this.offset = Vector2.multiply(Vector2.add(this.start, this.end), 0.5);
+        this.length = Vector2.subtract(this.end, this.start).getMagnitude();
+        this.dir = Vector2.subtract(this.end, this.start).unit();
+        this.drag = drag;
+
+        this.angle = 0;
+        this.angVel = 0;
 
         Capsule.capsules.push(this);
     }
 
     draw(){
         ctx.beginPath();
-        ctx.arc(this.start.x + this.gameObject.transform.position.x - (Camera.position.x - Camera.size.x / 2), -(this.start.y + this.gameObject.transform.position.y - Camera.position.y - Camera.size.y / 2), this.radius, this.refAngle + Math.PI / 2, this.refAngle + 3 * Math.PI / 2);
-        ctx.arc(this.end.x + this.gameObject.transform.position.x - (Camera.position.x - Camera.size.x / 2), -(this.end.y + this.gameObject.transform.position.y - Camera.position.y - Camera.size.y / 2), this.radius, this.refAngle - Math.PI / 2, this.refAngle + Math.PI / 2);
+        ctx.arc(this.start.x - (Camera.position.x - Camera.size.x / 2), -(this.start.y - Camera.position.y - Camera.size.y / 2), this.radius, this.refAngle + this.angle + Math.PI / 2, this.refAngle + this.angle + 3 * Math.PI / 2);
+        ctx.arc(this.end.x - (Camera.position.x - Camera.size.x / 2), -(this.end.y - Camera.position.y - Camera.size.y / 2), this.radius, this.refAngle + this.angle - Math.PI / 2, this.refAngle + this.angle + Math.PI / 2);
+       
         ctx.closePath();
         ctx.strokeStyle = "black";
         ctx.stroke();
@@ -492,6 +511,31 @@ class Capsule{
     }
 
     update(){
+        this.updateVelocity();
+        this.updatePosition();
+        this.calculatePosition();
+    }
 
+    updateVelocity(){
+        this.velocity.x *= 1-this.drag * deltaTime;
+        this.velocity.y *= 1-this.drag * deltaTime;
+        this.velocity.x += this.acceleration.x * deltaTime;
+        this.velocity.y += this.acceleration.y * deltaTime;
+        this.angle += this.angVel;
+        this.angVel *= 0.96;
+    }
+
+    calculatePosition(){
+        let rotMat = rotMx(this.angle);
+        this.dir = rotMat.multiplyVec(this.refDir);
+
+        this.position = Vector2.add(this.gameObject.transform.position, this.offset);
+        this.start = Vector2.add(this.position, Vector2.multiply(this.dir, -this.length / 2));
+        this.end = Vector2.add(this.position, Vector2.multiply(this.dir, this.length / 2));
+    }
+
+    updatePosition(){
+        this.gameObject.transform.position.x += this.velocity.x * deltaTime;
+        this.gameObject.transform.position.y += this.velocity.y * deltaTime;
     }
 }

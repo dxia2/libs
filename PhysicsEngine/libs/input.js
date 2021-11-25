@@ -6,6 +6,10 @@ let keysPressed = {
     "a": false,
     "s": false,
     "d": false,
+    "ArrowUp": false,
+    "ArrowDown": false,
+    "ArrowLeft": false,
+    "ArrowRight": false
 }
 // Event Listeners
 document.addEventListener("keydown", keyDownHandler);
@@ -15,6 +19,7 @@ function keyDownHandler(event) {
     if (event.key in keysPressed) {
         keysPressed[event.key] = true;
     }
+
 }
 
 function keyUpHandler(event) {
