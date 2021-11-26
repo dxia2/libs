@@ -278,38 +278,72 @@ function coll_res_bb(b1, b2){
     b1.velocity = Vector2.add(b1.velocity, Vector2.multiply(impulseVec, b1.inv_m));
     b2.velocity = Vector2.add(b2.velocity, Vector2.multiply(impulseVec, -b2.inv_m));
 }
-
-function closestPointBW(b1, w1){
-    let ballToWallStart = Vector2.subtract(w1.start, b1.position);
-    if(Vector2.dot(w1.wallUnit(), ballToWallStart) > 0){
+//returns with the closest point on a line segment to a given point
+function closestPointOnLS(p, w1){
+    let ballToWallStart = Vector2.subtract(w1.start, p);
+    if(Vector2.dot(w1.dir, ballToWallStart) > 0){
         return w1.start;
     }
 
-    let wallEndToBall = Vector2.subtract(b1.position, w1.end);
-    if(Vector2.dot(w1.wallUnit(), wallEndToBall) > 0){
+    let wallEndToBall = Vector2.subtract(p, w1.end);
+    if(Vector2.dot(w1.dir, wallEndToBall) > 0){
         return w1.end;
     }
 
-    let closestDist = Vector2.dot(w1.wallUnit(), ballToWallStart);
-    let closestVect = Vector2.multiply(w1.wallUnit(), closestDist);
+    let closestDist = Vector2.dot(w1.dir, ballToWallStart);
+    let closestVect = Vector2.multiply(w1.dir, closestDist);
 
     return Vector2.subtract(w1.start, closestVect);
 }
 
+function closesPointsBetweenLS(c1, c2){
+    let shortestDist = Vector2.subtract(closestPointOnLS(c1.start, c2), c1.start).getMagnitude();
+    let closestPoints = [c1.start, closestPointOnLs(c1.start, c2)];
+    if(Vector2.subtract(closestPointOnLS(c1.end, c2), c1.end).getMagnitude() < shortestDist){
+        shortestDist = Vector2.subtract(closestPointOnLS(c1.end, c2), c1.end).getMagnitude();
+        closestPoints = [c1.end, closestPointOnLS(c1.end, c2)];
+    }
+
+    if(Vector2.subtract(closestPointOnLS(c2.start, c1), c2.start).getMagnitude() < shortestDist){
+        shortestDist = Vector2.subtract(closestPointOnLS(c2.start, c1), c2.start).getMagnitude();
+        closestPoints = [closestPointOnLS(c2.start, c1), c2.start];
+    }
+
+    if(Vector2.subtract(closestPointOnLS(c2.end, c1), c2.end).getMagnitude() < shortestDist){
+        shortestDist = Vector2.subtract(closestPointOnLS(c2.end, c1), c2.end).getMagnitude();
+        closestPoints = [closestPointOnLS(c2.end, c1), c2.end];
+    }
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(closestPoints[0].x, closestPoints[0].y);
+    ctx.moveTo(closestPoints[1].x, closestPoints[1].y);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(closestPoints[0].x, closestPoints[0].y, c1.r, 0, 2*Math.PI);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(closestPoints[1].x, closestPoints[1].y, c2.r, 0, 2*Math.PI);
+    ctx.closePath();
+    ctx.stroke();
+    return closestPoints;
+}
+
 function coll_det_bw(b1, w1){
-    let ballToClosest = Vector2.subtract(closestPointBW(b1, w1), b1.position);
+    let ballToClosest = Vector2.subtract(closestPointOnLS(b1.position, w1), b1.position);
     if(ballToClosest.getMagnitude() <= b1.radius){
         return true;
     }
 }
 
 function pen_res_bw(b1, w1){
-    let penVect = Vector2.subtract(b1.position, closestPointBW(b1, w1));
+    let penVect = Vector2.subtract(b1.position, closestPointOnLS(b1.position, w1));
     b1.changePosition(Vector2.add(b1.position, Vector2.multiply(penVect.unit(), b1.radius - penVect.getMagnitude())));
 }
 
 function coll_res_bw(b1, w1){
-    let normal = Vector2.subtract(b1.position, closestPointBW(b1, w1)).unit();
+    let normal = Vector2.subtract(b1.position, closestPointOnLS(b1.position, w1)).unit();
     let sepVel = Vector2.dot(b1.velocity, normal);
     let new_sepVel = -sepVel * b1.elasticity;
     let vsep_diff = sepVel - new_sepVel;
@@ -398,54 +432,30 @@ class CircleCollider{
         this.gameObject.transform.position.y = newPos.y - this.offset.y;
     }   
 }
-// WALLS DONT MOVE WITH THEIR GAMEOBJECT!!!!
-//FIX LATER
+
 class Wall{
     gameObject;
-    start;
-    end;
+    localStart;
+    localEnd;
 
-    refStart;
-    refEnd;
-    refUnit;
+    get start(){
+        return Vector2.add(this.gameObject.transform.position, this.localStart);
+    }
+    get end(){
+        return Vector2.add(this.gameObject.transform.position, this.localEnd);
+    }
+    get dir(){
+        return Vector2.subtract(this.localEnd, this.localStart).unit();
 
-    center;
-    length;
-    angle = 0;
-    angVel = 0;
+    }
 
     static walls = [];
     constructor(gameObject, start, end){
         this.gameObject = gameObject;
-        this.start = start;
-        this.end = end;
-        this.center = Vector2.multiply(Vector2.add(this.start, this.end), 0.5);
-        this.length = Vector2.subtract(this.end, this.start).getMagnitude();
-        this.refStart = start;
-        this.refEnd = end;
-        this.refUnit = Vector2.subtract(this.end, this.start).unit();
-        this.angle = 0;
-        this.angVel = 0;
+        this.localStart = start;
+        this.localEnd = end;
 
-        this.update();
         Wall.walls.push(this);
-    }
-
-    update(){
-        this.angle += this.angVel;
-        this.angVel *= 0.96;
-
-        let rotMat = rotMx(this.angle);
-        let newDir = rotMat.multiplyVec(this.refUnit);
-        this.start = Vector2.add(this.center, Vector2.multiply(newDir, -this.length/2));
-        this.end = Vector2.add(this.center, Vector2.multiply(newDir, this.length/2));
-
-
-
-    }
-
-    wallUnit(){
-        return Vector2.subtract(this.end, this.start).unit();
     }
 }
 
@@ -500,14 +510,16 @@ class Capsule{
 
     draw(){
         ctx.beginPath();
-        ctx.arc(this.start.x - (Camera.position.x - Camera.size.x / 2), -(this.start.y - Camera.position.y - Camera.size.y / 2), this.radius, this.refAngle + this.angle + Math.PI / 2, this.refAngle + this.angle + 3 * Math.PI / 2);
-        ctx.arc(this.end.x - (Camera.position.x - Camera.size.x / 2), -(this.end.y - Camera.position.y - Camera.size.y / 2), this.radius, this.refAngle + this.angle - Math.PI / 2, this.refAngle + this.angle + Math.PI / 2);
-       
+        console.log(this.refAngle);
+        ctx.arc(this.start.x - (Camera.position.x - Camera.size.x / 2), -(this.start.y - Camera.position.y - Camera.size.y / 2), this.radius, (this.refAngle - this.angle + Math.PI / 2), (this.refAngle - this.angle + 3 * Math.PI / 2));
+        ctx.arc(this.end.x - (Camera.position.x - Camera.size.x / 2), -(this.end.y - Camera.position.y - Camera.size.y / 2), this.radius, (this.refAngle - this.angle - Math.PI / 2), (this.refAngle - this.angle + Math.PI / 2));
         ctx.closePath();
+        ctx.moveTo(this.start.x - (Camera.position.x - Camera.size.x / 2), -(this.start.y - Camera.position.y - Camera.size.y / 2));
+        ctx.lineTo(this.end.x - (Camera.position.x - Camera.size.x / 2), -(this.end.y - Camera.position.y - Camera.size.y / 2));
         ctx.strokeStyle = "black";
         ctx.stroke();
-        ctx.fillStyle = "lightgreen";
-        ctx.fill();
+        // ctx.fillStyle = "lightgreen";
+        // ctx.fill();
     }
 
     update(){

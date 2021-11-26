@@ -49,9 +49,14 @@ let wall5wall = wall5.getComponent(Wall)
 wall5.addComponent(new LineRenderer(wall5, ctx, wall5wall.start, wall5wall.end));
 
 let caps1 = new GameObject();
-caps1.addComponent(new Capsule(caps1, new Vector2(-50, 50), new Vector2(50, 25), 30, 0.6));
-caps1.transform.position.y = 0;
+caps1.addComponent(new Capsule(caps1, new Vector2(-50, 50), new Vector2(50, 50), 30, 0.6));
+caps1.transform.position.y = 100;
 caps1.transform.position.x = 150;
+
+let caps2 = new GameObject();
+caps2.addComponent(new Capsule(caps2, new Vector2(-100, 50), new Vector2(50, 50), 30, 0.6));
+caps2.transform.position.y = 100;
+caps2.transform.position.x = 150;
 
 let gameIsRunning = true;
 let moveSpeed = 250;
@@ -65,12 +70,10 @@ function update(){
     // Key control WASD
     if(keysPressed["a"]){
         ball1.getComponent(CircleCollider).acceleration.x = -moveSpeed;
-        wall5.getComponent(Wall).angVel -= 0.01;
 
     }
     if(keysPressed["d"]){
         ball1.getComponent(CircleCollider).acceleration.x = moveSpeed;
-        wall5.getComponent(Wall).angVel += 0.01;
 
 
     }
@@ -84,12 +87,18 @@ function update(){
     caps1.getComponent(Capsule).acceleration = Vector2.zero();
     caps1.getComponent(Capsule).angVel = 0;
     if(keysPressed["ArrowLeft"]){
-        caps1.getComponent(Capsule).acceleration.x -= moveSpeed;
-        caps1.getComponent(Capsule).angVel -= 1;
+        caps1.getComponent(Capsule).angVel += 0.1;
     }
     if(keysPressed["ArrowRight"]){
-        caps1.getComponent(Capsule).acceleration.x += moveSpeed;
-        caps1.getComponent(Capsule).angVel += 1;
+
+        caps1.getComponent(Capsule).angVel -= 0.1;
+    }
+    console.log(caps1.getComponent(Capsule).position);
+    if(keysPressed["ArrowUp"]){
+        caps1.getComponent(Capsule).acceleration = Vector2.multiply(Vector2.multiply(caps1.getComponent(Capsule).dir, -1), moveSpeed);
+    }
+    if(keysPressed["ArrowDown"]){
+        caps1.getComponent(Capsule).acceleration = Vector2.multiply(caps1.getComponent(Capsule).dir, moveSpeed);
     }
 
     // console.log(caps1.getComponent(Capsule).position);
@@ -120,7 +129,6 @@ function update(){
                     pen_res_bw(CircleCollider.balls[i], Wall.walls[a]);
                     coll_res_bw(CircleCollider.balls[i], Wall.walls[a]);
                 }
-                Wall.walls[a].update();
             }
 
             for(let j = i+1; j < CircleCollider.balls.length; j++){
