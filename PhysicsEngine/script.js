@@ -49,12 +49,12 @@ let wall5wall = wall5.getComponent(Wall)
 wall5.addComponent(new LineRenderer(wall5, ctx, wall5wall.start, wall5wall.end));
 
 let caps1 = new GameObject();
-caps1.addComponent(new Capsule(caps1, new Vector2(-50, 50), new Vector2(50, 50), 30, 0.6));
+caps1.addComponent(new Capsule(caps1, new Vector2(-50, 50), new Vector2(50, 50), 30, 0.6, 2));
 caps1.transform.position.y = 100;
 caps1.transform.position.x = 150;
 
 let caps2 = new GameObject();
-caps2.addComponent(new Capsule(caps2, new Vector2(-100, 50), new Vector2(50, 50), 30, 0.6));
+caps2.addComponent(new Capsule(caps2, new Vector2(-100, 50), new Vector2(50, 50), 15, 0.6, 3));
 caps2.transform.position.y = 100;
 caps2.transform.position.x = 150;
 
@@ -145,6 +145,13 @@ function update(){
         for(let i = 0; i < Capsule.capsules.length; i++){
             Capsule.capsules[i].draw();
             Capsule.capsules[i].update();
+            for(let j = i + 1; j < Capsule.capsules.length; j++){
+                if(coll_det_cc(Capsule.capsules[i], Capsule.capsules[j])){
+                    ctx.fillText("Collide", 500, 400);
+                    pen_res_cc(Capsule.capsules[i], Capsule.capsules[j]);
+                    coll_res_cc(Capsule.capsules[i], Capsule.capsules[j]);
+                }
+            }
         }
 
         // Vector2.drawVec(
@@ -158,6 +165,7 @@ function update(){
         //     coll_res_bw(ball1.getComponent(CircleCollider), wall1.getComponent(Wall));
         // }
 
+        closestPointsBetweenLS(caps1.getComponent(Capsule), caps2.getComponent(Capsule));
 
         requestAnimationFrame(update);
     }
