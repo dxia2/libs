@@ -371,18 +371,50 @@ function pen_res_cc(c1, c2){
 
 function coll_res_cc(c1, c2){
 
-    let closestPoints = closestPointsBetweenLS(c1, c2);
+    // let closestPoints = closestPointsBetweenLS(c1, c2);
 
-    let normal = Vector2.subtract(closestPoints[0], closestPoints[1]).unit();
+    // let normal = Vector2.subtract(closestPoints[0], closestPoints[1]).unit();
     
-    //1. closing velocity
-    let collArm1 = Vector2.add(Vector2.subtract(closestPoints[0], c1.position), Vector2.multiply(normal, c1.radius));
-    let rotVel1 = new Vector2(-c1.angVel * collArm1.y, c1.angVel * collArm1.x);
-    let closVel1 = Vector2.add(c1.velocity, rotVel1);
+    // //1. closing velocity
+    // let collArm1 = Vector2.add(Vector2.subtract(closestPoints[0], c1.position), Vector2.multiply(normal, c1.radius));
+    // let rotVel1 = new Vector2(-c1.angVel * collArm1.y, c1.angVel * collArm1.x);
+    // let closVel1 = Vector2.add(c1.velocity, rotVel1);
 
-    let collArm2 = Vector2.add(Vector2.subtract(closestPoints[1], c2.position), Vector2.multiply(normal, -c2.radius));
-    let rotVel2 = new Vector2(-c2.angVel * collArm2.y, c2.angVel * collArm2.x);
-    let closVel2 = Vector2.add(c2.velocity, rotVel2);
+    // let collArm2 = Vector2.add(Vector2.subtract(closestPoints[1], c2.position), Vector2.multiply(normal, -c2.radius));
+    // let rotVel2 = new Vector2(-c2.angVel * collArm2.y, c2.angVel * collArm2.x);
+    // let closVel2 = Vector2.add(c2.velocity, rotVel2);
+
+    // //2. Impulse augmentation
+    // let impAug1 = Vector2.cross(collArm1, normal);
+    // impAug1 = impAug1 * c1.inv_inertia * impAug1;
+    // let impAug2 = Vector2.cross(collArm2, normal);
+    // impAug2 = impAug2 * c2.inv_inertia * impAug2;
+
+    // let relVel = Vector2.subtract(closVel1, closVel2);
+    // let sepVel = Vector2.dot(relVel, normal);
+    // let new_sepVel = -sepVel * Math.min(c1.elasticity, c2.elasticity);
+    // let vsep_diff = new_sepVel - sepVel;
+
+    // let impulse = vsep_diff / (c1.inv_m + c2.inv_m + impAug1 + impAug2);
+    // let impulseVec = Vector2.multiply(normal, impulse);
+
+    // //3. Changing the velocities
+    // c1.velocity = Vector2.add(c1.velocity, Vector2.multiply(impulseVec, c1.inv_m));
+    // c2.velocity = Vector2.add(c2.velocity, Vector2.multiply(impulseVec, -c2.inv_m));
+
+    // c1.angVel += c1.inv_inertia * Vector2.cross(collArm1, impulseVec);
+    // c2.angVel -= c2.inv_inertia * Vector2.cross(collArm2, impulseVec);
+
+
+    let normal = closestPointsBetweenLS(c1, c2)[0].subtr(closestPointsBetweenLS(c1, c2)[1]).unit();
+    
+    //1. Closing velocity
+    let collArm1 = closestPointsBetweenLS(c1, c2)[0].subtr(c1.position).add(normal.mult(c1.radius));
+    let rotVel1 = new Vector2(-c1.angVel * collArm1.y, c1.angVel * collArm1.x);
+    let closVel1 = c1.velocity.add(rotVel1);
+    let collArm2 = closestPointsBetweenLS(c1, c2)[1].subtr(c2.position).add(normal.mult(-c2.radius));
+    let rotVel2= new Vector2(-c2.angVel * collArm2.y, c2.angVel * collArm2.x);
+    let closVel2 = c2.velocity.add(rotVel2);
 
     //2. Impulse augmentation
     let impAug1 = Vector2.cross(collArm1, normal);
@@ -390,20 +422,20 @@ function coll_res_cc(c1, c2){
     let impAug2 = Vector2.cross(collArm2, normal);
     impAug2 = impAug2 * c2.inv_inertia * impAug2;
 
-    let relVel = Vector2.subtract(c1.velocity, c2.velocity);
+    let relVel = closVel1.subtr(closVel2);
     let sepVel = Vector2.dot(relVel, normal);
     let new_sepVel = -sepVel * Math.min(c1.elasticity, c2.elasticity);
     let vsep_diff = new_sepVel - sepVel;
-
+    
     let impulse = vsep_diff / (c1.inv_m + c2.inv_m + impAug1 + impAug2);
-    let impulseVec = Vector2.multiply(normal, impulse);
+    let impulseVec = normal.mult(impulse);
 
     //3. Changing the velocities
-    c1.velocity = Vector2.add(c1.velocity, Vector2.multiply(impulseVec, c1.inv_m));
-    c2.velocity = Vector2.add(c2.velocity, Vector2.multiply(impulseVec, -c2.inv_m));
+    c1.velocity = c1.velocity.add(impulseVec.mult(c1.inv_m));
+    c2.velocity = c2.velocity.add(impulseVec.mult(-c2.inv_m));
 
     c1.angVel += c1.inv_inertia * Vector2.cross(collArm1, impulseVec);
-    c2.angVel -= c2.inv_inertia * Vector2.cross(collArm2, impulseVec);
+    c2.angVel -= c2.inv_inertia * Vector2.cross(collArm2, impulseVec); 
 }
 
 function rotMx(angle){
@@ -543,7 +575,7 @@ class Capsule{
     }
 
     get inv_inertia(){
-        if(this.mass === 0){
+        if(this.inertia === 0){
             return 0;
         }else{
             return 1 / this.inertia;
@@ -575,7 +607,7 @@ class Capsule{
         this.dir = Vector2.subtract(this.end, this.start).unit();
         this.drag = drag;
         this.mass = mass;
-        this.inertia = this.m * (this.radius**2 + (this.length + 2 * this.radius) ** 2) / 12;
+        this.inertia = this.mass * (this.radius**2 + (this.length + 2 * this.radius) ** 2) / 12;
 
         this.angle = 0;
         this.angVel = 0;
@@ -585,7 +617,6 @@ class Capsule{
 
     draw(){
         ctx.beginPath();
-        console.log(this.refAngle);
         ctx.arc(this.start.x - (Camera.position.x - Camera.size.x / 2), -(this.start.y - Camera.position.y - Camera.size.y / 2), this.radius, (this.refAngle - this.angle + Math.PI / 2), (this.refAngle - this.angle + 3 * Math.PI / 2));
         ctx.arc(this.end.x - (Camera.position.x - Camera.size.x / 2), -(this.end.y - Camera.position.y - Camera.size.y / 2), this.radius, (this.refAngle - this.angle - Math.PI / 2), (this.refAngle - this.angle + Math.PI / 2));
         ctx.closePath();

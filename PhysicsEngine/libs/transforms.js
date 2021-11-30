@@ -67,7 +67,7 @@ class Vector2{
     }
 
     static cross(vector1, vector2){
-        return vector1.x * vector2.y - vector1.y * vector2.x;
+        return (vector1.x * vector2.y) - (vector1.y * vector2.x);
     }
 
     static drawVec(vector1, vector2, color){
@@ -80,5 +80,17 @@ class Vector2{
 
     static distBtw2Points(point1, point2){
         return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
+    }
+
+    add(vector2){
+        return new Vector2(this.x + vector2.x, this.y + vector2.y);
+    }
+
+    subtr(vector2){
+        return Vector2.subtract(this, vector2);
+    }
+
+    mult(multiplier){
+        return Vector2.multiply(this, multiplier);
     }
 }
