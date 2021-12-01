@@ -50,14 +50,14 @@ wall5.addComponent(new LineRenderer(wall5, ctx, wall5wall.start, wall5wall.end))
 
 let caps1 = new GameObject();
 caps1.transform.position.y = 0;
-caps1.transform.position.x = 0;
-caps1.addComponent(new Capsule(caps1, new Vector2(-50, 0), new Vector2(50, 0), 30, 0.6, 2));
+caps1.transform.position.x = -200;
+caps1.addComponent(new Capsule(caps1, new Vector2(0, -0), new Vector2(100, 0), 30, 0.6, 2));
 
 
 let caps2 = new GameObject();
 caps2.transform.position.y = 0;
-caps2.transform.position.x = 100;
-caps2.addComponent(new Capsule(caps2, new Vector2(-100, 0), new Vector2(50, 0), 40, 0.6, 3));
+caps2.transform.position.x = 0;
+caps2.addComponent(new Capsule(caps2, new Vector2(-100, 100), new Vector2(100, -100), 40, 0.6, 3));
 
 
 
@@ -68,15 +68,13 @@ let moveSpeed = 250;
 let distanceVec = new Vector2(0, 0);
 requestAnimationFrame(update);
 function update(){
-
-    // console.log(caps2.transform.position);
+   // console.log(caps2.transform.position);
 
     ball1.getComponent(CircleCollider).acceleration.x = 0;
     ball1.getComponent(CircleCollider).acceleration.y = 0;
     // Key control WASD
     if(keysPressed["a"]){
         ball1.getComponent(CircleCollider).acceleration.x = -moveSpeed;
-
     }
     if(keysPressed["d"]){
         ball1.getComponent(CircleCollider).acceleration.x = moveSpeed;
