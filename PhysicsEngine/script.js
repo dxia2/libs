@@ -49,18 +49,19 @@ let wall5wall = wall5.getComponent(Wall)
 wall5.addComponent(new LineRenderer(wall5, ctx, wall5wall.start, wall5wall.end));
 
 let caps1 = new GameObject();
-caps1.transform.position.y = 0;
-caps1.transform.position.x = -200;
-caps1.addComponent(new Capsule(caps1, new Vector2(0, -0), new Vector2(100, 0), 30, 0.6, 2));
+caps1.transform.position.y = 150;
+caps1.transform.position.x = 250;
 
+caps1.addComponent(new Capsule(caps1, 100, new Vector2(0, 0), 40, 0.6, 3));
+caps1.getComponent(Capsule).angle = 90 / (180 /  Math.PI);
 
 let caps2 = new GameObject();
 caps2.transform.position.y = 0;
-caps2.transform.position.x = 0;
-caps2.addComponent(new Capsule(caps2, new Vector2(-100, 100), new Vector2(100, -100), 40, 0.6, 3));
+caps2.transform.position.x = 200;
+caps2.addComponent(new Capsule(caps2, 100, new Vector2(0, 0), 40, 0.6, 3));
 
-
-
+console.log(caps1.getComponent(Capsule).inv_inertia);
+console.log(caps1.getComponent(Capsule).length);
 
 let gameIsRunning = true;
 let moveSpeed = 250;
@@ -88,21 +89,21 @@ function update(){
         ball1.getComponent(CircleCollider).acceleration.y = -moveSpeed;
     }
     // Key control Arrow keys
-    caps2.getComponent(Capsule).acceleration = Vector2.zero();
+    caps1.getComponent(Capsule).acceleration = Vector2.zero();
 
     if(keysPressed["ArrowLeft"]){
-        caps2.getComponent(Capsule).angVel = 0.05;
+        caps1.getComponent(Capsule).angVel = 5;
     }
     if(keysPressed["ArrowRight"]){
 
-        caps2.getComponent(Capsule).angVel = -0.05;
+        caps1.getComponent(Capsule).angVel = -5;
     }
 
     if(keysPressed["ArrowUp"]){
-        caps2.getComponent(Capsule).acceleration = Vector2.multiply(Vector2.multiply(caps2.getComponent(Capsule).dir, -1), moveSpeed);
+        caps1.getComponent(Capsule).acceleration = Vector2.multiply(Vector2.multiply(caps1.getComponent(Capsule).dir, -1), moveSpeed);
     }
     if(keysPressed["ArrowDown"]){
-        caps2.getComponent(Capsule).acceleration = Vector2.multiply(caps2.getComponent(Capsule).dir, moveSpeed);
+        caps1.getComponent(Capsule).acceleration = Vector2.multiply(caps1.getComponent(Capsule).dir, moveSpeed);
     }
 
     // console.log(caps1.getComponent(Capsule).position);

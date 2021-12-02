@@ -84,6 +84,8 @@ function closestPointsBetweenLS(c1, c2){
     ctx.arc(closestPoints[1].x - (Camera.position.x - Camera.size.x / 2), -(closestPoints[1].y - Camera.position.y - Camera.size.y / 2), c2.radius, 0, 2*Math.PI);
     ctx.closePath();
     ctx.stroke();
+
+
     return closestPoints;
 }
 
@@ -160,10 +162,10 @@ function coll_res_cc(c1, c2){
 
     // c1.angVel += c1.inv_inertia * Vector2.cross(collArm1, impulseVec);
     // c2.angVel -= c2.inv_inertia * Vector2.cross(collArm2, impulseVec);
-
+    console.log(c1.velocity);
 
     let normal = closestPointsBetweenLS(c1, c2)[0].subtr(closestPointsBetweenLS(c1, c2)[1]).unit();
-    
+
     //1. Closing velocity
     let collArm1 = closestPointsBetweenLS(c1, c2)[0].subtr(c1.position).add(normal.mult(c1.radius));
     let rotVel1 = new Vector2(-c1.angVel * collArm1.y, c1.angVel * collArm1.x);
@@ -173,10 +175,10 @@ function coll_res_cc(c1, c2){
     let closVel2 = c2.velocity.add(rotVel2);
 
     //2. Impulse augmentation
-    let impAug1 = Vector2.cross(collArm1, normal);
-    impAug1 = impAug1 * c1.inv_inertia * impAug1;
     let impAug2 = Vector2.cross(collArm2, normal);
     impAug2 = impAug2 * c2.inv_inertia * impAug2;
+    let impAug1 = Vector2.cross(collArm1, normal);
+    impAug1 = impAug1 * c1.inv_inertia * impAug1;
 
     let relVel = closVel1.subtr(closVel2);
     let sepVel = Vector2.dot(relVel, normal);
@@ -192,6 +194,8 @@ function coll_res_cc(c1, c2){
 
     c1.angVel += c1.inv_inertia * Vector2.cross(collArm1, impulseVec);
     c2.angVel -= c2.inv_inertia * Vector2.cross(collArm2, impulseVec); 
+
+ 
 }
 
 function rotMx(angle){
@@ -346,26 +350,26 @@ class Capsule{
     }
 
     static capsules = [];
-    constructor(gameObject, start, end, radius, drag, mass){
+    constructor(gameObject, length, offset, radius, drag, mass){
         this.gameObject = gameObject;
         this.radius = radius;
 
-        this.start = start;
-        this.end = end;
+        this.start = new Vector2(offset.x - (length / 2), offset.y);
+        this.end = new Vector2(offset.x + (length / 2), offset.y);
 
         let relativeEnd = new Vector2(this.end.x + this.gameObject.transform.position.x, (this.end.y + this.gameObject.transform.position.y));
         let relativeStart = new Vector2(this.start.x + this.gameObject.transform.position.x, (this.start.y + this.gameObject.transform.position.y));
 
         this.refDir = Vector2.subtract(relativeEnd, relativeStart).unit();
         this.refAngle = Math.acos(Vector2.dot(this.end.subtr(this.start).unit(), new Vector2(1,0)));
-        if(Vector2.cross(this.refDir, new Vector2(1, 0)) > 0){
-            this.refAngle *= -1;
-        }
+        // if(Vector2.cross(this.refDir, new Vector2(1, 0)) > 0){
+        //     this.refAngle *= -1;
+        // }
 
         this.acceleration = new Vector2(0, 0);
         this.velocity = new Vector2(0, 0);
         this.position = Vector2.add(Vector2.multiply(Vector2.add(this.start, this.end), 0.5), this.gameObject.transform.position);
-        this.offset = Vector2.multiply(Vector2.add(this.start, this.end), 0.5);
+        this.offset = offset;
         this.length = Vector2.subtract(this.end, this.start).getMagnitude();
         this.dir = this.refDir;
         this.drag = drag;
@@ -404,13 +408,11 @@ class Capsule{
         this.velocity.y *= 1-this.drag * deltaTime;
         this.velocity.x += this.acceleration.x * deltaTime;
         this.velocity.y += this.acceleration.y * deltaTime;
-        this.angle += this.angVel;
+        this.a += this.angVel * deltaTime;
         this.angVel *= 0.96;
     }
 
     calculatePosition(){
-
-        console.log(caps2.getComponent(Capsule).angle); 
         let rotMat = rotMx(this.angle);
         this.dir = rotMat.multiplyVec(this.refDir);
 
