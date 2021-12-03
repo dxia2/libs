@@ -162,7 +162,6 @@ function coll_res_cc(c1, c2){
 
     // c1.angVel += c1.inv_inertia * Vector2.cross(collArm1, impulseVec);
     // c2.angVel -= c2.inv_inertia * Vector2.cross(collArm2, impulseVec);
-    console.log(c1.velocity);
 
     let normal = closestPointsBetweenLS(c1, c2)[0].subtr(closestPointsBetweenLS(c1, c2)[1]).unit();
 
@@ -196,6 +195,47 @@ function coll_res_cc(c1, c2){
     c2.angVel -= c2.inv_inertia * Vector2.cross(collArm2, impulseVec); 
 
  
+}
+// Separating axis theorem
+function sat(o1, o2){
+    axes1 = o1.dir.normal();
+    axes2 = o2.dir.normal();
+    let proj1, proj2 = 0;
+
+    proj1 = projShapeOntoAxis(axes1, o1);
+    proj2 = projShapeOntoAxis(axes1, o2);
+    let overlap = Math.min(proj1.max, proj2.max) - Math.max(proj1.min, proj2.min);
+    if(overlap < 0){
+        return false;
+    }
+
+    proj1 = projShapeOntoAxis(axes2, o1);
+    proj2 = projShapeOntoAxis(axes2, o2);
+    overlap = Math.min(proj1.max, proj2.max) - Math.max(proj1.min, proj2.min);
+    if(overlap < 0){
+        return false;
+    }
+
+    return true;
+}
+
+function projShapeOntoAxis(axis, obj){
+    let min = Vector2.dot(axis, obj.verticies[0]);
+    let max = min;
+    for(let i = 0; i < obj.verticies.length; i++){
+        let p = Vector2.dot(axis, obj.verticies[i]);
+        if(p < min){
+            min = p;
+        }
+        if(p > max){
+            max = p;
+        }
+    }
+
+    return{
+        min: min,
+        max: max
+    }
 }
 
 function rotMx(angle){
@@ -285,6 +325,8 @@ class Wall{
     localStart;
     localEnd;
 
+    verticies = [];
+
     get start(){
         return Vector2.add(this.gameObject.transform.position, this.localStart);
     }
@@ -293,7 +335,14 @@ class Wall{
     }
     get dir(){
         return Vector2.subtract(this.localEnd, this.localStart).unit();
+    }
 
+    set start(value){
+        this.localStart = Vector2.subtract(value, this.gameObject.transform.position);
+    }
+
+    set end(value){
+        this.localEnd = Vector2.subtract(value, this.gameObject.transform.position);
     }
 
     static walls = [];
@@ -301,8 +350,13 @@ class Wall{
         this.gameObject = gameObject;
         this.localStart = start;
         this.localEnd = end;
+        this.verticies = [this.start, this.end];
 
         Wall.walls.push(this);
+    }
+
+    update(){
+        this.verticies = [this.start, this.end];
     }
 }
 
@@ -374,7 +428,7 @@ class Capsule{
         this.dir = this.refDir;
         this.drag = drag;
         this.mass = mass;
-        this.inertia = this.mass * (this.radius**2 + (this.length + 2 * this.radius) ** 2) / 12;
+        this.inertia = this.mass * ((2*this.radius)**2 + (this.length + 2 * this.radius) ** 2) / 12;
 
         this.angle = this.refAngle;
         this.angVel = 0;
@@ -432,4 +486,73 @@ class Capsule{
         this.gameObject.transform.position.x = newPos.x - this.offset.x;
         this.gameObject.transform.position.y = newPos.y - this.offset.y;
     }   
+}
+class Box{
+    offset;
+    size;
+    mass;
+    get inv_m(){
+        if(this.mass === 0){
+            return 0;
+        }else{
+            return 1 / this.mass;
+        }
+    }
+    get inertia(){
+        return this.mass * (this.size.x**2 + (this.size.y + 2 * this.size.x)**2) / 12;
+    }
+    get inv_inertia(){
+        if(this.mass === 0){
+            return 0;
+        }else{
+            return 1 / this.inertia;
+        }
+    }
+    verticies = [];
+    
+    get position(){
+        return Vector2.add(this.gameObject.transform.position, this.offset);
+    }
+
+    set position(value){
+        this.gameObject.transform.position = Vector2.subtract(value, this.offset);
+    }
+
+    velocity;
+    acceleration;
+    elasticity;
+
+    constructor(offset, size, mass){
+        this.offset = offset;
+        this.size = size;
+        this.verticies[0] = new Vector2(this.position.x - (this.size.x / 2), this.position.y + (this.size.y / 2));
+        this.verticies[1] = new Vector2(this.position.x + (this.size.x / 2), this.position.y + (this.size.y / 2));
+        this.verticies[2] = new Vector2(this.position.x - (this.size.x / 2), this.position.y - (this.size.y / 2));
+        this.verticies[3] = new Vector2(this.position.x + (this.size.x / 2), this.position.y - (this.size.y / 2));
+        this.dir = new Vector2(0, 1);
+
+        this.mass = mass;
+    }
+
+    update(){
+        
+    }
+
+    draw(){
+        ctx.beginPath();
+        ctx.moveTo(this.verticies[0].x, this.verticies[0].y);
+        ctx.lineTo(this.verticies[1].x, this.verticies[1].y);
+        ctx.lineTo(this.verticies[2].x, this.verticies[2].y);
+        ctx.lineTo(this.verticies[3].x, this.verticies[3].y);
+        ctx.lineTo(this.verticies[0].x, this.verticies[0].y);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        ctx.closePath();
+        //Test Circle
+        ctx.beginPath();
+        ctx.arc(this.position.x, this.position.y, 10, 0, 2*Math.PI);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        ctx.closePath();
+    }
 }

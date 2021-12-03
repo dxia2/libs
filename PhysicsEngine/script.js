@@ -48,6 +48,12 @@ wall5.addComponent(new Wall(wall5, new Vector2(-50, 0), new Vector2(50, 0)));
 let wall5wall = wall5.getComponent(Wall)
 wall5.addComponent(new LineRenderer(wall5, ctx, wall5wall.start, wall5wall.end));
 
+let wall6 = new GameObject();
+wall6.addComponent(new LineRenderer(wall6, ctx, new Vector2(50, 50), new Vector2(0, -50)));
+wall6.addComponent(new Wall(wall6, new Vector2(50, 50), new Vector2(0, -50)));
+
+wall6.transform.position.x -= 100;
+
 let caps1 = new GameObject();
 caps1.transform.position.y = 150;
 caps1.transform.position.x = 250;
@@ -60,8 +66,7 @@ caps2.transform.position.y = 0;
 caps2.transform.position.x = 200;
 caps2.addComponent(new Capsule(caps2, 100, new Vector2(0, 0), 40, 0.6, 3));
 
-console.log(caps1.getComponent(Capsule).inv_inertia);
-console.log(caps1.getComponent(Capsule).length);
+//CREATE BOX AND TEST
 
 let gameIsRunning = true;
 let moveSpeed = 250;
@@ -69,10 +74,10 @@ let moveSpeed = 250;
 let distanceVec = new Vector2(0, 0);
 requestAnimationFrame(update);
 function update(){
-   // console.log(caps2.transform.position);
-
+    wall6.transform.position.x += 0.5;
     ball1.getComponent(CircleCollider).acceleration.x = 0;
     ball1.getComponent(CircleCollider).acceleration.y = 0;
+
     // Key control WASD
     if(keysPressed["a"]){
         ball1.getComponent(CircleCollider).acceleration.x = -moveSpeed;
@@ -125,7 +130,9 @@ function update(){
         ball1.getComponent(CircleCollider).display();
         // distanceVec = Vector2.subtract(ball2.getComponent(CircleCollider).position, ball1.getComponent(CircleCollider).position);
         // ctx.fillText("Distance: " + distanceVec.getMagnitude(), 450, 250);
-
+        for(let a = 0; a < Wall.walls.length; a++){
+            Wall.walls[a].update();
+        }
 
         for(let i = 0; i < CircleCollider.balls.length; i++){
 
@@ -159,18 +166,12 @@ function update(){
             }
         }
 
-        // Vector2.drawVec(
-        //     ball1.getComponent(CircleCollider).position,
-        //     closestPointBW(ball1.getComponent(CircleCollider), wall1.getComponent(Wall)),
-        //     "red"
-        // )
+        if(sat(wall5.getComponent(Wall), wall6.getComponent(Wall))){
+            ctx.fillText("COLLISION", 500, 400);
+            console.log("AAA");
+        }
 
-        // if(coll_det_bw(ball1.getComponent(CircleCollider), wall1.getComponent(Wall))){
-        //     pen_res_bw(ball1.getComponent(CircleCollider), wall1.getComponent(Wall));
-        //     coll_res_bw(ball1.getComponent(CircleCollider), wall1.getComponent(Wall));
-        // }
-
-        closestPointsBetweenLS(caps1.getComponent(Capsule), caps2.getComponent(Capsule));
+        // closestPointsBetweenLS(caps1.getComponent(Capsule), caps2.getComponent(Capsule));
 
         requestAnimationFrame(update);
     }
