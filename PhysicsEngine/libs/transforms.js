@@ -77,6 +77,14 @@ class Vector2{
         ctx.strokeStyle = color;
         ctx.stroke();
     }
+    drawVec(start_x, start_y, n, color){
+        ctx.beginPath();
+        ctx.moveTo(start_x - (Camera.position.x - Camera.size.x / 2), -(start_y - Camera.position.y - Camera.size.y / 2));
+        ctx.lineTo(start_x - (Camera.position.x - Camera.size.x / 2) + (this.x - (Camera.position.x - Camera.size.x / 2)) * n, -(start_y - Camera.position.y - Camera.size.y / 2) + -(this.y - Camera.position.y - Camera.size.y / 2) * n);
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        ctx.closePath();
+    }
 
     static distBtw2Points(point1, point2){
         return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));

@@ -6,6 +6,8 @@ let keysPressed = {
     "a": false,
     "s": false,
     "d": false,
+    "q": false,
+    "e": false,
     "ArrowUp": false,
     "ArrowDown": false,
     "ArrowLeft": false,

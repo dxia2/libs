@@ -67,6 +67,12 @@ caps2.transform.position.x = 200;
 caps2.addComponent(new Capsule(caps2, 100, new Vector2(0, 0), 40, 0.6, 3));
 
 //CREATE BOX AND TEST
+let box1 = new GameObject();
+box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(100, 50), 5, 0.6));
+box1.transform.position.x -= 150;
+
+let box2 = new GameObject();
+box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(50, 100), 5, 0.6));
 
 let gameIsRunning = true;
 let moveSpeed = 250;
@@ -74,24 +80,43 @@ let moveSpeed = 250;
 let distanceVec = new Vector2(0, 0);
 requestAnimationFrame(update);
 function update(){
-    wall6.transform.position.x += 0.5;
+
     ball1.getComponent(CircleCollider).acceleration.x = 0;
     ball1.getComponent(CircleCollider).acceleration.y = 0;
 
     // Key control WASD
+    // if(keysPressed["a"]){
+    //     ball1.getComponent(CircleCollider).acceleration.x = -moveSpeed;
+    // }
+    // if(keysPressed["d"]){
+    //     ball1.getComponent(CircleCollider).acceleration.x = moveSpeed;
+
+
+    // }
+    // if(keysPressed["w"]){
+    //     ball1.getComponent(CircleCollider).acceleration.y = moveSpeed;
+    // }
+    // if(keysPressed["s"]){
+    //     ball1.getComponent(CircleCollider).acceleration.y = -moveSpeed;
+    // }
+    box1.getComponent(Box).acceleration = Vector2.zero();
     if(keysPressed["a"]){
-        ball1.getComponent(CircleCollider).acceleration.x = -moveSpeed;
+        box1.getComponent(Box).acceleration.x = -moveSpeed;
     }
     if(keysPressed["d"]){
-        ball1.getComponent(CircleCollider).acceleration.x = moveSpeed;
-
-
+        box1.getComponent(Box).acceleration.x = moveSpeed;
     }
     if(keysPressed["w"]){
-        ball1.getComponent(CircleCollider).acceleration.y = moveSpeed;
+        box1.getComponent(Box).acceleration.y = moveSpeed;
     }
     if(keysPressed["s"]){
-        ball1.getComponent(CircleCollider).acceleration.y = -moveSpeed;
+        box1.getComponent(Box).acceleration.y = -moveSpeed;
+    }
+    if(keysPressed["q"]){
+        box1.getComponent(Box).angVel -= 0.05;
+    }
+    if(keysPressed["e"]){
+        box1.getComponent(Box).angVel += 0.05;
     }
     // Key control Arrow keys
     caps1.getComponent(Capsule).acceleration = Vector2.zero();
@@ -166,12 +191,19 @@ function update(){
             }
         }
 
-        if(sat(wall5.getComponent(Wall), wall6.getComponent(Wall))){
-            ctx.fillText("COLLISION", 500, 400);
-            console.log("AAA");
-        }
+        // if(sat(wall5.getComponent(Wall), wall6.getComponent(Wall))){
 
-        // closestPointsBetweenLS(caps1.getComponent(Capsule), caps2.getComponent(Capsule));
+        //     ctx.fillText("COLLISION", 500, 400);
+        // }
+
+        box1.getComponent(Box).draw();
+        box1.getComponent(Box).update();
+        box2.getComponent(Box).draw();
+        box2.getComponent(Box).update();
+
+        if(sat(box1.getComponent(Box), box2.getComponent(Box))){
+            ctx.fillText("COLLISION", 500, 400);
+        }
 
         requestAnimationFrame(update);
     }

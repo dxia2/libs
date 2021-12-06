@@ -198,23 +198,56 @@ function coll_res_cc(c1, c2){
 }
 // Separating axis theorem
 function sat(o1, o2){
-    axes1 = o1.dir.normal();
-    axes2 = o2.dir.normal();
+    let minOverlap = null;
+    let smallestAxis;
+    let vertexObj;
+
+    axes1 = [];
+    axes2 = [];
+    axes1.push(o1.dir.normal());
+    axes1.push(o1.dir);
+    axes2.push(o2.dir.normal());
+    axes2.push(o2.dir);
     let proj1, proj2 = 0;
 
-    proj1 = projShapeOntoAxis(axes1, o1);
-    proj2 = projShapeOntoAxis(axes1, o2);
-    let overlap = Math.min(proj1.max, proj2.max) - Math.max(proj1.min, proj2.min);
-    if(overlap < 0){
-        return false;
+    for(let i = 0; i < axes1.length; i++){
+        proj1 = projShapeOntoAxis(axes1[i], o1);
+        proj2 = projShapeOntoAxis(axes1[i], o2);
+        let overlap = Math.min(proj1.max, proj2.max) - Math.max(proj1.min, proj2.min);
+        if(overlap < 0){
+            return false;
+        }
+
+        if(overlap < minOverlap || minOverlap === null){
+            minOverlap = overlap;
+            smallestAxis = axes1[i];
+            vertexObj = o2;
+            if(proj1.max > proj2.max){
+                smallestAxis = Vector2.multiply(axes1[i], -1);
+            }
+        }
     }
 
-    proj1 = projShapeOntoAxis(axes2, o1);
-    proj2 = projShapeOntoAxis(axes2, o2);
-    overlap = Math.min(proj1.max, proj2.max) - Math.max(proj1.min, proj2.min);
-    if(overlap < 0){
-        return false;
+    for(let i = 0; i < axes2.length; i++){
+        proj1 = projShapeOntoAxis(axes2[i], o1);
+        proj2 = projShapeOntoAxis(axes2[i], o2);
+        overlap = Math.min(proj1.max, proj2.max) - Math.max(proj1.min, proj2.min);
+        if(overlap < 0){
+            return false;
+        }
+
+        if(overlap < minOverlap || minOverlap === null){
+            minOverlap = overlap;
+            smallestAxis = axes2[i];
+            vertexObj = o1;
+            if(proj1.max < proj2.max){
+                smallestAxis = Vector2.multiply(axes2[i], -1);
+            }
+        }
     }
+
+    let contactVertex = projShapeOntoAxis(smallestAxis, vertexObj).collVertex;
+    smallestAxis.drawVec(contactVertex.x, contactVertex.y, minOverlap, "blue");
 
     return true;
 }
@@ -222,10 +255,12 @@ function sat(o1, o2){
 function projShapeOntoAxis(axis, obj){
     let min = Vector2.dot(axis, obj.verticies[0]);
     let max = min;
+    let collVertex = obj.verticies[0];
     for(let i = 0; i < obj.verticies.length; i++){
         let p = Vector2.dot(axis, obj.verticies[i]);
         if(p < min){
             min = p;
+            collVertex = obj.verticies[i];
         }
         if(p > max){
             max = p;
@@ -234,7 +269,8 @@ function projShapeOntoAxis(axis, obj){
 
     return{
         min: min,
-        max: max
+        max: max,
+        collVertex: collVertex
     }
 }
 
@@ -395,13 +431,8 @@ class Capsule{
         }
     }
 
-    a;
-    get angle(){
-        return this.a;
-    }
-    set angle(angle){
-        this.a = angle;
-    }
+    angle;
+
 
     static capsules = [];
     constructor(gameObject, length, offset, radius, drag, mass){
@@ -462,7 +493,7 @@ class Capsule{
         this.velocity.y *= 1-this.drag * deltaTime;
         this.velocity.x += this.acceleration.x * deltaTime;
         this.velocity.y += this.acceleration.y * deltaTime;
-        this.a += this.angVel * deltaTime;
+        this.angle += this.angVel * deltaTime;
         this.angVel *= 0.96;
     }
 
@@ -518,41 +549,77 @@ class Box{
         this.gameObject.transform.position = Vector2.subtract(value, this.offset);
     }
 
-    velocity;
-    acceleration;
-    elasticity;
-
-    constructor(offset, size, mass){
+    velocity = new Vector2(0, 0);
+    acceleration = new Vector2(0, 0);
+    elasticity = 1;
+    gameObject;
+    drag;
+    angle = 0;
+    angVel = 0;
+    refDir = new Vector2(0, 1);
+    refAngle = 0;
+    constructor(gameObject, offset, size, mass, drag){
+        this.gameObject = gameObject;
         this.offset = offset;
         this.size = size;
-        this.verticies[0] = new Vector2(this.position.x - (this.size.x / 2), this.position.y + (this.size.y / 2));
-        this.verticies[1] = new Vector2(this.position.x + (this.size.x / 2), this.position.y + (this.size.y / 2));
-        this.verticies[2] = new Vector2(this.position.x - (this.size.x / 2), this.position.y - (this.size.y / 2));
-        this.verticies[3] = new Vector2(this.position.x + (this.size.x / 2), this.position.y - (this.size.y / 2));
+        this.drag = drag;
+        this.update();
         this.dir = new Vector2(0, 1);
+        this.refAngle = 0;
+        this.angle = 0;
 
         this.mass = mass;
     }
 
     update(){
-        
+        this.updateVelocity();
+        this.updatePosition();
+        this.calculatePosition();
+        this.updateVerticies();
     }
 
     draw(){
         ctx.beginPath();
-        ctx.moveTo(this.verticies[0].x, this.verticies[0].y);
-        ctx.lineTo(this.verticies[1].x, this.verticies[1].y);
-        ctx.lineTo(this.verticies[2].x, this.verticies[2].y);
-        ctx.lineTo(this.verticies[3].x, this.verticies[3].y);
-        ctx.lineTo(this.verticies[0].x, this.verticies[0].y);
+        ctx.moveTo(this.verticies[0].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[0].y + Camera.position.y + Camera.size.y / 2);
+        ctx.lineTo(this.verticies[1].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[1].y + Camera.position.y + Camera.size.y / 2);
+        ctx.lineTo(this.verticies[2].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[2].y + Camera.position.y + Camera.size.y / 2);
+        ctx.lineTo(this.verticies[3].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[3].y + Camera.position.y + Camera.size.y / 2);
+        ctx.lineTo(this.verticies[0].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[0].y + Camera.position.y + Camera.size.y / 2);
         ctx.strokeStyle = "black";
         ctx.stroke();
         ctx.closePath();
         //Test Circle
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, 10, 0, 2*Math.PI);
+        ctx.arc(this.position.x - (Camera.position.x - Camera.size.x / 2), -this.position.y + Camera.position.y + Camera.size.y / 2, 10, 0, 2*Math.PI);
         ctx.strokeStyle = "black";
         ctx.stroke();
         ctx.closePath();
+    }
+
+    updateVerticies(){
+
+        this.verticies[0] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, -this.size.y / 2)), Vector2.multiply(this.dir.normal(), this.size.x / 2));
+        this.verticies[1] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, -this.size.y / 2)), Vector2.multiply(this.dir.normal(), -this.size.x / 2));
+        this.verticies[2] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, this.size.y / 2)), Vector2.multiply(this.dir.normal(), -this.size.x / 2));
+        this.verticies[3] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, this.size.y / 2)), Vector2.multiply(this.dir.normal(), this.size.x / 2));
+    }
+
+    updateVelocity(){
+        this.velocity.x *= 1-this.drag * deltaTime;
+        this.velocity.y *= 1-this.drag * deltaTime;
+        this.velocity.x += this.acceleration.x * deltaTime;
+        this.velocity.y += this.acceleration.y * deltaTime;
+        this.angle += this.angVel * deltaTime;
+        this.angVel *= 0.96;
+    }
+
+    calculatePosition(){
+        let rotMat = rotMx(this.angle);
+        this.dir = rotMat.multiplyVec(this.refDir);
+    }
+
+    updatePosition(){
+        this.gameObject.transform.position.x += this.velocity.x * deltaTime;
+        this.gameObject.transform.position.y += this.velocity.y * deltaTime;
     }
 }
