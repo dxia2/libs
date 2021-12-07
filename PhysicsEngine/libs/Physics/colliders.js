@@ -202,49 +202,48 @@ function sat(o1, o2){
     let smallestAxis;
     let vertexObj;
 
-    axes1 = [];
-    axes2 = [];
-    axes1.push(o1.dir.normal());
-    axes1.push(o1.dir);
-    axes2.push(o2.dir.normal());
-    axes2.push(o2.dir);
+    let axes = findAxes(o1, o2);
     let proj1, proj2 = 0;
+    let firstShapeAxes = getFirstShapeAxes(o1);
 
-    for(let i = 0; i < axes1.length; i++){
-        proj1 = projShapeOntoAxis(axes1[i], o1);
-        proj2 = projShapeOntoAxis(axes1[i], o2);
+    for(let i = 0; i < axes.length; i++){
+        proj1 = projShapeOntoAxis(axes[i], o1);
+        proj2 = projShapeOntoAxis(axes[i], o2);
         let overlap = Math.min(proj1.max, proj2.max) - Math.max(proj1.min, proj2.min);
         if(overlap < 0){
             return false;
         }
 
-        if(overlap < minOverlap || minOverlap === null){
-            minOverlap = overlap;
-            smallestAxis = axes1[i];
-            vertexObj = o2;
-            if(proj1.max > proj2.max){
-                smallestAxis = Vector2.multiply(axes1[i], -1);
+        if((proj1.max > proj2.max && proj1.min < proj2.min) || 
+        (proj1.max < proj2.max && proj1.min > proj2.min)){
+            let mins = Math.abs(proj1.min - proj2.min);
+            let maxs = Math.abs(proj1.max - proj2.max);
+            if(mins < maxs){
+                overlap += mins;
+            }else{
+                overlap += maxs;
+                axes[i] = Vector2.multiply(axes[i], -1);
             }
-        }
-    }
-
-    for(let i = 0; i < axes2.length; i++){
-        proj1 = projShapeOntoAxis(axes2[i], o1);
-        proj2 = projShapeOntoAxis(axes2[i], o2);
-        overlap = Math.min(proj1.max, proj2.max) - Math.max(proj1.min, proj2.min);
-        if(overlap < 0){
-            return false;
         }
 
         if(overlap < minOverlap || minOverlap === null){
             minOverlap = overlap;
-            smallestAxis = axes2[i];
-            vertexObj = o1;
-            if(proj1.max < proj2.max){
-                smallestAxis = Vector2.multiply(axes2[i], -1);
+            smallestAxis = axes[i];
+            if(i < firstShapeAxes){
+                vertexObj = o2;
+                if(proj1.max > proj2.max){
+                    smallestAxis = Vector2.multiply(axes[i], -1);
+                }
+            }else{
+                vertexObj = o1;
+                if(proj1.max < proj2.max){
+                    smallestAxis = Vector2.multiply(axes[i], -1);
+                }
             }
         }
     }
+
+   
 
     let contactVertex = projShapeOntoAxis(smallestAxis, vertexObj).collVertex;
     smallestAxis.drawVec(contactVertex.x, contactVertex.y, minOverlap, "blue");
@@ -252,7 +251,65 @@ function sat(o1, o2){
     return true;
 }
 
+function findAxes(o1, o2){
+    let axes = [];
+    if(o1 instanceof Ball && o2 instanceof Ball){
+        axes.push(Vector2.subtract(o2.position, o1.position).unit());
+        return axes;
+    }
+    if(o1 instanceof Ball){
+        axes.push(Vector2.subtract(closestVertexToPoint(o2, o1.position), o1.position).unit());
+        axes.push(o2.dir.normal());
+        if(o2 instanceof Box){
+            axes.push(o2.dir);
+        }
+        return axes;
+    }
+    if(o2 instanceof Ball){
+        axes.push(Vector2.subtract(closestVertexToPoint(o1, o2.position), o2.position).unit());
+        axes.push(o1.dir.normal());
+        if(o1 instanceof Box){
+            axes.push(o1.dir);
+        }
+        return axes;
+    }
+    axes.push(o1.dir.normal());
+    axes.push(o1.dir);
+    axes.push(o2.dir.normal());
+    axes.push(o2.dir);
+    return axes;
+}
+
+function getFirstShapeAxes(obj){
+    if(obj instanceof Ball){
+        return 1;
+    }else{
+        return 2;
+    }
+}
+
+function setBallVerticiesAlongAxis(obj, axis){
+    if(obj instanceof Ball){
+        obj.verticies[0] = Vector2.add(obj.position, Vector2.multiply(axis.unit(), -obj.radius));
+        obj.verticies[1] = Vector2.add(obj.position, Vector2.multiply(axis.unit(), obj.radius));
+    }
+}
+
+function closestVertexToPoint(obj, p){
+    let closestVertex;
+    let minDist = null;
+    for(let i = 0; i < obj.verticies.length; i++){
+        if(Vector2.subtract(p, obj.verticies[i].getMagnitude() < minDist || minDist === null)){
+            closestVertex = obj.verticies[i];
+            minDist = Vector2.subtract(p, obj.verticies[i]).getMagnitude(); 
+        }
+    }
+
+    return closestVertex;
+}
+
 function projShapeOntoAxis(axis, obj){
+    setBallVerticiesAlongAxis(obj, axis);
     let min = Vector2.dot(axis, obj.verticies[0]);
     let max = min;
     let collVertex = obj.verticies[0];
@@ -283,7 +340,7 @@ function rotMx(angle){
     return mx;
 }
 
-class CircleCollider{
+class Ball{
     gameObject;
     offset = new Vector2(0, 0);
     position = new Vector2(0, 0);
@@ -295,6 +352,7 @@ class CircleCollider{
     drag = new Vector2(0, 0);
     mass = 1;
     elasticity = 1;
+    verticies;
     get inv_m(){
         if(this.mass === 0){
             return 0;
@@ -305,25 +363,34 @@ class CircleCollider{
 
     static balls = [];
 
+    get position(){
+        return Vector2.add(this.gameObject.transform.position, this.offset);
+    }
+
+    set position(value){
+        this.gameObject.transform.position = Vector2.subtract(value, this.offset);
+    }
+
 
     constructor(gameObject, offset, radius, velocity, acceleration, drag, mass){
         this.gameObject = gameObject;
         this.offset = offset;
+        this.comp = [new Circle(gameObject, offset, radius)];
+
         this.radius = radius;
         this.velocity = velocity;
         this.acceleration = acceleration;
         this.drag = drag;
         this.mass = mass;
+        this.verticies = [];
 
-        CircleCollider.balls.push(this);
+        Ball.balls.push(this);
 
         this.calculatePosition();
     }
 
     update(){
-
         this.updateVelocity();
-        this.updatePosition();
         this.calculatePosition();
     }
 
@@ -336,10 +403,6 @@ class CircleCollider{
         this.velocity.y *= 1-this.drag * deltaTime;
         this.velocity.x += this.acceleration.x * deltaTime;
         this.velocity.y += this.acceleration.y * deltaTime;
-    }
-    updatePosition(){
-        this.gameObject.transform.position.x += this.velocity.x * deltaTime;
-        this.gameObject.transform.position.y += this.velocity.y * deltaTime;
     }
     display(){
         Vector2.drawVec(this.position, Vector2.add(this.position, this.velocity), "green");
@@ -354,6 +417,9 @@ class CircleCollider{
         this.gameObject.transform.position.x = newPos.x - this.offset.x;
         this.gameObject.transform.position.y = newPos.y - this.offset.y;
     }   
+    draw(){
+        this.comp[0].draw();
+    }
 }
 
 class Wall{
@@ -383,6 +449,7 @@ class Wall{
 
     static walls = [];
     constructor(gameObject, start, end){
+        this.comp = [new Line(gameObject, start, end)];
         this.gameObject = gameObject;
         this.localStart = start;
         this.localEnd = end;
@@ -559,6 +626,7 @@ class Box{
     refDir = new Vector2(0, 1);
     refAngle = 0;
     constructor(gameObject, offset, size, mass, drag){
+        this.comp = [new Rectangle(gameObject, offset, size)];
         this.gameObject = gameObject;
         this.offset = offset;
         this.size = size;
@@ -579,21 +647,7 @@ class Box{
     }
 
     draw(){
-        ctx.beginPath();
-        ctx.moveTo(this.verticies[0].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[0].y + Camera.position.y + Camera.size.y / 2);
-        ctx.lineTo(this.verticies[1].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[1].y + Camera.position.y + Camera.size.y / 2);
-        ctx.lineTo(this.verticies[2].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[2].y + Camera.position.y + Camera.size.y / 2);
-        ctx.lineTo(this.verticies[3].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[3].y + Camera.position.y + Camera.size.y / 2);
-        ctx.lineTo(this.verticies[0].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[0].y + Camera.position.y + Camera.size.y / 2);
-        ctx.strokeStyle = "black";
-        ctx.stroke();
-        ctx.closePath();
-        //Test Circle
-        ctx.beginPath();
-        ctx.arc(this.position.x - (Camera.position.x - Camera.size.x / 2), -this.position.y + Camera.position.y + Camera.size.y / 2, 10, 0, 2*Math.PI);
-        ctx.strokeStyle = "black";
-        ctx.stroke();
-        ctx.closePath();
+        this.comp[0].draw();
     }
 
     updateVerticies(){
@@ -621,5 +675,110 @@ class Box{
     updatePosition(){
         this.gameObject.transform.position.x += this.velocity.x * deltaTime;
         this.gameObject.transform.position.y += this.velocity.y * deltaTime;
+    }
+}
+
+class Line{
+    gameObject;
+    localStart;
+    localEnd;
+
+    verticies = [];
+
+    get start(){
+        return Vector2.add(this.gameObject.transform.position, this.localStart);
+    }
+    get end(){
+        return Vector2.add(this.gameObject.transform.position, this.localEnd);
+    }
+    get dir(){
+        return Vector2.subtract(this.localEnd, this.localStart).unit();
+    }
+
+    set start(value){
+        this.localStart = Vector2.subtract(value, this.gameObject.transform.position);
+    }
+
+    set end(value){
+        this.localEnd = Vector2.subtract(value, this.gameObject.transform.position);
+    }
+    constructor(gameObject, start, end){
+        this.gameObject = gameObject;
+        this.localStart = start;
+        this.localEnd = end;
+        this.verticies = [this.start, this.end];
+
+        Wall.walls.push(this);
+    }
+
+    update(){
+        this.verticies = [this.start, this.end];
+    }
+}
+
+class Circle{
+    get position(){
+        return Vector2.add(gameObject.transform.position, offset);
+    }
+    constructor(gameObject, offset, radius){
+        this.offset = offset;
+        this.verticies = [];
+        this.radius = radius;
+    }
+
+    draw(){
+        ctx.beginPath();
+        ctx.arc(this.position.x, this.position.y, this.radius, 0, 2*Math.PI);
+        ctx.stroke();
+        // ctx.fillStyle = "red";
+        // ctx.fill();
+        ctx.closePath();
+    }
+}
+
+class Rectangle{
+
+    constructor(gameObject, offset, size){
+        this.gameObject = gameObject;
+        this.offset = offset;
+        this.size = size;
+        this.verticies = [];
+        this.dir = new Vector2(0, 1);
+        this.refDir = new Vector2(0, 1);
+        this.angle = 0;
+        this.rotMat = new Matrix(2, 2);
+        this.update();
+    }
+
+    draw(){
+        ctx.beginPath();
+        ctx.moveTo(this.verticies[0].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[0].y + Camera.position.y + Camera.size.y / 2);
+        ctx.lineTo(this.verticies[1].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[1].y + Camera.position.y + Camera.size.y / 2);
+        ctx.lineTo(this.verticies[2].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[2].y + Camera.position.y + Camera.size.y / 2);
+        ctx.lineTo(this.verticies[3].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[3].y + Camera.position.y + Camera.size.y / 2);
+        ctx.lineTo(this.verticies[0].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[0].y + Camera.position.y + Camera.size.y / 2);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        ctx.closePath();
+        //Test Circle
+        ctx.beginPath();
+        ctx.arc(this.position.x - (Camera.position.x - Camera.size.x / 2), -this.position.y + Camera.position.y + Camera.size.y / 2, 10, 0, 2*Math.PI);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        ctx.closePath();
+    }
+    update(){
+        this.updateVerticies();
+        this.calculateRotation();
+    }
+    updateVerticies(){
+        this.verticies[0] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, -this.size.y / 2)), Vector2.multiply(this.dir.normal(), this.size.x / 2));
+        this.verticies[1] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, -this.size.y / 2)), Vector2.multiply(this.dir.normal(), -this.size.x / 2));
+        this.verticies[2] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, this.size.y / 2)), Vector2.multiply(this.dir.normal(), -this.size.x / 2));
+        this.verticies[3] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, this.size.y / 2)), Vector2.multiply(this.dir.normal(), this.size.x / 2));
+    }
+    calculateRotation(){
+        let rotMat = rotMx(this.angle);
+        this.dir = rotMat.multiplyVec(this.refDir);
     }
 }

@@ -78,9 +78,12 @@ class Vector2{
         ctx.stroke();
     }
     drawVec(start_x, start_y, n, color){
+        console.log(new Vector2(start_x, start_y));
+        let thisPos = new Vector2(this.x - (Camera.position.x - Camera.size.x / 2), -(this.y - Camera.position.y - Camera.size.y / 2));
+        let startPos = new Vector2(start_x - (Camera.position.x - Camera.size.x / 2), -(start_y - Camera.position.y - Camera.size.y / 2))
         ctx.beginPath();
-        ctx.moveTo(start_x - (Camera.position.x - Camera.size.x / 2), -(start_y - Camera.position.y - Camera.size.y / 2));
-        ctx.lineTo(start_x - (Camera.position.x - Camera.size.x / 2) + (this.x - (Camera.position.x - Camera.size.x / 2)) * n, -(start_y - Camera.position.y - Camera.size.y / 2) + -(this.y - Camera.position.y - Camera.size.y / 2) * n);
+        ctx.moveTo(startPos.x, startPos.y);
+        ctx.lineTo(startPos.x + thisPos.x * n, startPos.y + thisPos.y * n);
         ctx.strokeStyle = color;
         ctx.stroke();
         ctx.closePath();
