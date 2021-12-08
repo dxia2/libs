@@ -8,8 +8,8 @@ function pen_res_bb(b1, b2){
     // b1.calculatePosition();
     // b2.calculatePosition();
 
-    b1.changePosition(Vector2.add(b1.position, Vector2.multiply(pen_res, b1.inv_m)));
-    b2.changePosition(Vector2.add(b2.position, Vector2.multiply(pen_res, -b2.inv_m)));
+    b1.position = (Vector2.add(b1.position, Vector2.multiply(pen_res, b1.inv_m)));
+    b2.position = (Vector2.add(b2.position, Vector2.multiply(pen_res, -b2.inv_m)));
 }
 
 function coll_det_bb(b1, b2){
@@ -98,7 +98,7 @@ function coll_det_bw(b1, w1){
 
 function pen_res_bw(b1, w1){
     let penVect = Vector2.subtract(b1.position, closestPointOnLS(b1.position, w1));
-    b1.changePosition(Vector2.add(b1.position, Vector2.multiply(penVect.unit(), b1.radius - penVect.getMagnitude())));
+    b1.position = Vector2.add(b1.position, Vector2.multiply(penVect.unit(), b1.radius - penVect.getMagnitude()));
 }
 
 function coll_res_bw(b1, w1){
@@ -204,7 +204,7 @@ function sat(o1, o2){
 
     let axes = findAxes(o1, o2);
     let proj1, proj2 = 0;
-    let firstShapeAxes = getFirstShapeAxes(o1);
+    let firstShapeAxes = getShapeAxes(o1);
 
     for(let i = 0; i < axes.length; i++){
         proj1 = projShapeOntoAxis(axes[i], o1);
@@ -253,43 +253,50 @@ function sat(o1, o2){
 
 function findAxes(o1, o2){
     let axes = [];
-    if(o1 instanceof Ball && o2 instanceof Ball){
+    if(o1 instanceof Circle && o2 instanceof Circle){
         axes.push(Vector2.subtract(o2.position, o1.position).unit());
         return axes;
     }
-    if(o1 instanceof Ball){
+    if(o1 instanceof Circle){
         axes.push(Vector2.subtract(closestVertexToPoint(o2, o1.position), o1.position).unit());
         axes.push(o2.dir.normal());
-        if(o2 instanceof Box){
+        if(o2 instanceof Rectangle){
             axes.push(o2.dir);
         }
         return axes;
     }
-    if(o2 instanceof Ball){
-        axes.push(Vector2.subtract(closestVertexToPoint(o1, o2.position), o2.position).unit());
+    if(o2 instanceof Circle){
         axes.push(o1.dir.normal());
-        if(o1 instanceof Box){
+        if(o1 instanceof Rectangle){
             axes.push(o1.dir);
         }
+        axes.push(Vector2.subtract(closestVertexToPoint(o1, o2.position), o2.position).unit());
+
         return axes;
     }
     axes.push(o1.dir.normal());
-    axes.push(o1.dir);
+    if(o1 instanceof Rectangle){
+        axes.push(o1.dir);
+    }
     axes.push(o2.dir.normal());
-    axes.push(o2.dir);
+    if(o2 instanceof Rectangle){
+        axes.push(o2.dir);
+    }
+
     return axes;
 }
 
-function getFirstShapeAxes(obj){
-    if(obj instanceof Ball){
+function getShapeAxes(obj){
+    if(obj instanceof Circle || obj instanceof Line){
         return 1;
-    }else{
+    }
+    if(obj instanceof Rectangle){
         return 2;
     }
 }
 
 function setBallVerticiesAlongAxis(obj, axis){
-    if(obj instanceof Ball){
+    if(obj instanceof Circle){
         obj.verticies[0] = Vector2.add(obj.position, Vector2.multiply(axis.unit(), -obj.radius));
         obj.verticies[1] = Vector2.add(obj.position, Vector2.multiply(axis.unit(), obj.radius));
     }
@@ -342,8 +349,6 @@ function rotMx(angle){
 
 class Ball{
     gameObject;
-    offset = new Vector2(0, 0);
-    position = new Vector2(0, 0);
     radius;
 
     //------
@@ -352,7 +357,6 @@ class Ball{
     drag = new Vector2(0, 0);
     mass = 1;
     elasticity = 1;
-    verticies;
     get inv_m(){
         if(this.mass === 0){
             return 0;
@@ -364,17 +368,15 @@ class Ball{
     static balls = [];
 
     get position(){
-        return Vector2.add(this.gameObject.transform.position, this.offset);
+        return this.comp[0].position;
     }
-
     set position(value){
-        this.gameObject.transform.position = Vector2.subtract(value, this.offset);
+        this.comp[0].position = value;
     }
 
 
     constructor(gameObject, offset, radius, velocity, acceleration, drag, mass){
         this.gameObject = gameObject;
-        this.offset = offset;
         this.comp = [new Circle(gameObject, offset, radius)];
 
         this.radius = radius;
@@ -382,27 +384,24 @@ class Ball{
         this.acceleration = acceleration;
         this.drag = drag;
         this.mass = mass;
-        this.verticies = [];
 
         Ball.balls.push(this);
-
-        this.calculatePosition();
+        this.update();
     }
 
     update(){
         this.updateVelocity();
-        this.calculatePosition();
+        this.updateComponentPos();
     }
 
-    calculatePosition(){
-        this.position.x = this.gameObject.transform.position.x + this.offset.x;
-        this.position.y = this.gameObject.transform.position.y + this.offset.y;
-    }
     updateVelocity(){
         this.velocity.x *= 1-this.drag * deltaTime;
         this.velocity.y *= 1-this.drag * deltaTime;
         this.velocity.x += this.acceleration.x * deltaTime;
         this.velocity.y += this.acceleration.y * deltaTime;
+    }
+    updateComponentPos(){
+        this.comp[0].position = Vector2.add(this.comp[0].position, Vector2.multiply(this.velocity, deltaTime));
     }
     display(){
         Vector2.drawVec(this.position, Vector2.add(this.position, this.velocity), "green");
@@ -412,11 +411,6 @@ class Ball{
         ctx.fillText("m = " + this.mass, this.position.x - (Camera.position.x - Camera.size.x / 2), -(this.position.y - Camera.position.y - Camera.size.y / 2))
         ctx.fillText("e = " + this.elasticity, this.position.x - (Camera.position.x - Camera.size.x / 2), -(this.position.y - 10 - Camera.position.y - Camera.size.y / 2))
     }
-
-    changePosition(newPos){
-        this.gameObject.transform.position.x = newPos.x - this.offset.x;
-        this.gameObject.transform.position.y = newPos.y - this.offset.y;
-    }   
     draw(){
         this.comp[0].draw();
     }
@@ -424,60 +418,40 @@ class Ball{
 
 class Wall{
     gameObject;
-    localStart;
-    localEnd;
-
-    verticies = [];
-
-    get start(){
-        return Vector2.add(this.gameObject.transform.position, this.localStart);
+    mass = 0;
+    get inv_m(){
+        return 0;
     }
-    get end(){
-        return Vector2.add(this.gameObject.transform.position, this.localEnd);
-    }
-    get dir(){
-        return Vector2.subtract(this.localEnd, this.localStart).unit();
-    }
-
-    set start(value){
-        this.localStart = Vector2.subtract(value, this.gameObject.transform.position);
-    }
-
-    set end(value){
-        this.localEnd = Vector2.subtract(value, this.gameObject.transform.position);
+    inertia = 0;
+    get inv_inertia(){
+        return 0;
     }
 
     static walls = [];
     constructor(gameObject, start, end){
         this.comp = [new Line(gameObject, start, end)];
         this.gameObject = gameObject;
-        this.localStart = start;
-        this.localEnd = end;
-        this.verticies = [this.start, this.end];
 
         Wall.walls.push(this);
     }
 
     update(){
-        this.verticies = [this.start, this.end];
+        this.comp[0].update();
+    }
+
+    draw(){
+        this.comp[0].draw();
     }
 }
 
 class Capsule{
     gameObject;
-    start;
-    end;
     radius;
-    refDir;
-    refAngle;
 
     acceleration;
     velocity;
-    position;
     length;
-    dir;
     drag;
-    offset;
     angVel;
     mass;
     elasticity = 1;
@@ -497,62 +471,45 @@ class Capsule{
             return 1 / this.inertia;
         }
     }
-
-    angle;
-
+    get position(){
+        return this.comp[0].position;
+    }
+    set position(value){
+        this.comp[0].position = value;
+    }
 
     static capsules = [];
     constructor(gameObject, length, offset, radius, drag, mass){
         this.gameObject = gameObject;
         this.radius = radius;
 
-        this.start = new Vector2(offset.x - (length / 2), offset.y);
-        this.end = new Vector2(offset.x + (length / 2), offset.y);
+        let start = new Vector2(offset.x - (length / 2), offset.y);
+        let end = new Vector2(offset.x + (length / 2), offset.y);
+        this.length = Vector2.subtract(end, start).getMagnitude();
 
-        let relativeEnd = new Vector2(this.end.x + this.gameObject.transform.position.x, (this.end.y + this.gameObject.transform.position.y));
-        let relativeStart = new Vector2(this.start.x + this.gameObject.transform.position.x, (this.start.y + this.gameObject.transform.position.y));
-
-        this.refDir = Vector2.subtract(relativeEnd, relativeStart).unit();
-        this.refAngle = Math.acos(Vector2.dot(this.end.subtr(this.start).unit(), new Vector2(1,0)));
-        // if(Vector2.cross(this.refDir, new Vector2(1, 0)) > 0){
-        //     this.refAngle *= -1;
-        // }
+        this.comp = [new Circle(gameObject, start, radius), new Circle(gameObject, end, radius)];
+        this.comp.unshift(new Rectangle(gameObject, offset, new Vector2(this.length, this.radius * 2)));
 
         this.acceleration = new Vector2(0, 0);
         this.velocity = new Vector2(0, 0);
-        this.position = Vector2.add(Vector2.multiply(Vector2.add(this.start, this.end), 0.5), this.gameObject.transform.position);
-        this.offset = offset;
-        this.length = Vector2.subtract(this.end, this.start).getMagnitude();
-        this.dir = this.refDir;
         this.drag = drag;
         this.mass = mass;
         this.inertia = this.mass * ((2*this.radius)**2 + (this.length + 2 * this.radius) ** 2) / 12;
 
-        this.angle = this.refAngle;
         this.angVel = 0;
 
         Capsule.capsules.push(this);
     }
 
     draw(){
-
-        ctx.beginPath();
-        ctx.arc(this.start.x - (Camera.position.x - Camera.size.x / 2), -(this.start.y - Camera.position.y - Camera.size.y / 2), this.radius, (this.refAngle - this.angle + Math.PI / 2), (this.refAngle - this.angle + 3 * Math.PI / 2));
-        ctx.arc(this.end.x - (Camera.position.x - Camera.size.x / 2), -(this.end.y - Camera.position.y - Camera.size.y / 2), this.radius, (this.refAngle - this.angle - Math.PI / 2), (this.refAngle - this.angle + Math.PI / 2));
-        ctx.closePath();
-        ctx.moveTo(this.start.x - (Camera.position.x - Camera.size.x / 2), -(this.start.y - Camera.position.y - Camera.size.y / 2));
-        ctx.lineTo(this.end.x - (Camera.position.x - Camera.size.x / 2), -(this.end.y - Camera.position.y - Camera.size.y / 2));
-        ctx.strokeStyle = "black";
-        ctx.stroke();
-        // ctx.fillStyle = "lightgreen";
-        // ctx.fill();
-
+        this.comp[0].draw();
+        this.comp[1].draw();
+        this.comp[2].draw();
     }
 
     update(){
         this.updateVelocity();
         this.updatePosition();
-        this.calculatePosition();
     }
 
     updateVelocity(){
@@ -560,33 +517,16 @@ class Capsule{
         this.velocity.y *= 1-this.drag * deltaTime;
         this.velocity.x += this.acceleration.x * deltaTime;
         this.velocity.y += this.acceleration.y * deltaTime;
-        this.angle += this.angVel * deltaTime;
+        this.comp[0].angle += this.angVel * deltaTime;
         this.angVel *= 0.96;
     }
 
-    calculatePosition(){
-        let rotMat = rotMx(this.angle);
-        this.dir = rotMat.multiplyVec(this.refDir);
-
-
-        this.position = Vector2.add(this.gameObject.transform.position, this.offset);
-        this.start = Vector2.add(this.position, Vector2.multiply(this.dir, -this.length / 2));
-        this.end = Vector2.add(this.position, Vector2.multiply(this.dir, this.length / 2));
-    }
-
     updatePosition(){
-        this.gameObject.transform.position.x += this.velocity.x * deltaTime;
-        this.gameObject.transform.position.y += this.velocity.y * deltaTime;
+        this.comp[0].position.x += this.velocity.x * deltaTime;
+        this.comp[0].position.y += this.velocity.y * deltaTime;
     }
-
-    
-    changePosition(newPos){
-        this.gameObject.transform.position.x = newPos.x - this.offset.x;
-        this.gameObject.transform.position.y = newPos.y - this.offset.y;
-    }   
 }
 class Box{
-    offset;
     size;
     mass;
     get inv_m(){
@@ -606,56 +546,43 @@ class Box{
             return 1 / this.inertia;
         }
     }
-    verticies = [];
     
     get position(){
-        return Vector2.add(this.gameObject.transform.position, this.offset);
+        return this.comp[0].position;
     }
-
     set position(value){
-        this.gameObject.transform.position = Vector2.subtract(value, this.offset);
+        this.comp[0].position = value;
     }
-
     velocity = new Vector2(0, 0);
     acceleration = new Vector2(0, 0);
     elasticity = 1;
     gameObject;
     drag;
-    angle = 0;
+    get angle(){
+        return ExtendedMath.degToRad(this.gameObject.transform.rotation);
+    }
+
+    set angle(value){
+        this.gameObject.transform.rotation = ExtendedMath.radToDeg(value);
+    }
     angVel = 0;
-    refDir = new Vector2(0, 1);
-    refAngle = 0;
     constructor(gameObject, offset, size, mass, drag){
         this.comp = [new Rectangle(gameObject, offset, size)];
         this.gameObject = gameObject;
-        this.offset = offset;
         this.size = size;
         this.drag = drag;
-        this.update();
-        this.dir = new Vector2(0, 1);
-        this.refAngle = 0;
-        this.angle = 0;
-
         this.mass = mass;
+        this.update();
     }
 
     update(){
         this.updateVelocity();
         this.updatePosition();
-        this.calculatePosition();
-        this.updateVerticies();
+        this.comp[0].update();
     }
 
     draw(){
         this.comp[0].draw();
-    }
-
-    updateVerticies(){
-
-        this.verticies[0] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, -this.size.y / 2)), Vector2.multiply(this.dir.normal(), this.size.x / 2));
-        this.verticies[1] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, -this.size.y / 2)), Vector2.multiply(this.dir.normal(), -this.size.x / 2));
-        this.verticies[2] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, this.size.y / 2)), Vector2.multiply(this.dir.normal(), -this.size.x / 2));
-        this.verticies[3] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, this.size.y / 2)), Vector2.multiply(this.dir.normal(), this.size.x / 2));
     }
 
     updateVelocity(){
@@ -663,18 +590,13 @@ class Box{
         this.velocity.y *= 1-this.drag * deltaTime;
         this.velocity.x += this.acceleration.x * deltaTime;
         this.velocity.y += this.acceleration.y * deltaTime;
-        this.angle += this.angVel * deltaTime;
+        this.comp[0].angle += this.angVel * deltaTime;
         this.angVel *= 0.96;
     }
 
-    calculatePosition(){
-        let rotMat = rotMx(this.angle);
-        this.dir = rotMat.multiplyVec(this.refDir);
-    }
-
     updatePosition(){
-        this.gameObject.transform.position.x += this.velocity.x * deltaTime;
-        this.gameObject.transform.position.y += this.velocity.y * deltaTime;
+        console.log(this.position);
+        this.comp[0].position = Vector2.add(this.comp[0].position, Vector2.multiply(this.velocity, deltaTime));
     }
 }
 
@@ -714,13 +636,26 @@ class Line{
     update(){
         this.verticies = [this.start, this.end];
     }
+
+    draw(){
+        ctx.beginPath();
+        ctx.moveTo(this.verticies[0].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[0].y + Camera.position.y + Camera.size.y / 2);
+        ctx.lineTo(this.verticies[1].x - (Camera.position.x - Camera.size.x / 2), -this.verticies[1].y + Camera.position.y + Camera.size.y / 2);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        ctx.closePath();
+    }
 }
 
 class Circle{
     get position(){
-        return Vector2.add(gameObject.transform.position, offset);
+        return Vector2.add(this.gameObject.transform.position, this.offset);
+    }
+    set position(value){
+        this.gameObject.transform.position = Vector2.subtract(value, this.offset);
     }
     constructor(gameObject, offset, radius){
+        this.gameObject = gameObject;
         this.offset = offset;
         this.verticies = [];
         this.radius = radius;
@@ -728,7 +663,7 @@ class Circle{
 
     draw(){
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.radius, 0, 2*Math.PI);
+        ctx.arc(this.position.x - (Camera.position.x - Camera.size.x / 2), -this.position.y + Camera.position.y + Camera.size.y / 2, this.radius, 0, 2*Math.PI);
         ctx.stroke();
         // ctx.fillStyle = "red";
         // ctx.fill();
@@ -737,7 +672,20 @@ class Circle{
 }
 
 class Rectangle{
+    get position(){
+        return Vector2.add(this.gameObject.transform.position, this.offset);
+    }
+    set position(value){
+        this.gameObject.transform.position = Vector2.subtract(value, this.offset);
+    }
 
+    get angle(){
+        return ExtendedMath.degToRad(this.gameObject.transform.rotation);
+    }
+
+    set angle(value){
+        this.gameObject.transform.rotation = ExtendedMath.radToDeg(value);
+    }
     constructor(gameObject, offset, size){
         this.gameObject = gameObject;
         this.offset = offset;
@@ -745,7 +693,6 @@ class Rectangle{
         this.verticies = [];
         this.dir = new Vector2(0, 1);
         this.refDir = new Vector2(0, 1);
-        this.angle = 0;
         this.rotMat = new Matrix(2, 2);
         this.update();
     }

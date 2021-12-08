@@ -9,19 +9,19 @@ let circleImg = document.getElementById("circle");
 Camera.initialize(canvas, ctx, new Vector2(0, 0), new Vector2(600, 400))
 
 let ball1 = new GameObject();
-ball1.addComponent(new SpriteRenderer(ball1, ctx, circleImg, 50, 50));
+// ball1.addComponent(new SpriteRenderer(ball1, ctx, circleImg, 50, 50));
 ball1.addComponent(new Ball(ball1, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0.6, 2));
 ball1.transform.position = new Vector2(0, 100);
 ball1.getComponent(Ball).velocity.y += 5;
 
 let ball2 = new GameObject();
-ball2.addComponent(new SpriteRenderer(ball2, ctx, circleImg, 50, 50));
+// ball2.addComponent(new SpriteRenderer(ball2, ctx, circleImg, 50, 50));
 ball2.addComponent(new Ball(ball2, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0.6, 2));
 ball2.transform.position = new Vector2(50, 150);
 
 let ball3 = new GameObject();
 ball3.transform.position.x += 50
-ball3.addComponent(new SpriteRenderer(ball3, ctx, circleImg, 100, 100));
+// ball3.addComponent(new SpriteRenderer(ball3, ctx, circleImg, 100, 100));
 ball3.addComponent(new Ball(ball3, new Vector2(0, 0), 50, new Vector2(0, 0), new Vector2(0, 0), 0.6, 10));
 
 let wall1 = new GameObject();
@@ -29,29 +29,20 @@ wall1.addComponent(new Wall(wall1, new Vector2(-300, 200), new Vector2(-300, -20
 wall1.name = "wall1";
 
 let wall2 = new GameObject();
-
-wall2.addComponent(new LineRenderer(wall2, ctx, new Vector2(300, 200), new Vector2(300, -200)));
 wall2.addComponent(new Wall(wall2, new Vector2(300, 200), new Vector2(300, -200)));
 wall2.name = "wall2";
 
 let wall3 = new GameObject();
-
-wall3.addComponent(new LineRenderer(wall3, ctx, new Vector2(-300, -200), new Vector2(300, -200)));
 wall3.addComponent(new Wall(wall3, new Vector2(-300, -200), new Vector2(300, -200)));
 
 let wall4 = new GameObject();
-
-wall4.addComponent(new LineRenderer(wall4, ctx, new Vector2(-300, 200), new Vector2(300, 200)));
 wall4.addComponent(new Wall(wall4, new Vector2(-300, 200), new Vector2(300, 200)));
 
 let wall5 = new GameObject();
-
 wall5.addComponent(new Wall(wall5, new Vector2(-50, 0), new Vector2(50, 0)));
-let wall5wall = wall5.getComponent(Wall)
-wall5.addComponent(new LineRenderer(wall5, ctx, wall5wall.start, wall5wall.end));
+let wall5wall = wall5.getComponent(Wall);
 
 let wall6 = new GameObject();
-wall6.addComponent(new LineRenderer(wall6, ctx, new Vector2(50, 50), new Vector2(0, -50)));
 wall6.addComponent(new Wall(wall6, new Vector2(50, 50), new Vector2(0, -50)));
 
 wall6.transform.position.x -= 100;
@@ -101,18 +92,18 @@ function update(){
     // if(keysPressed["s"]){
     //     ball1.getComponent(Ball).acceleration.y = -moveSpeed;
     // }
-    ball1.getComponent(Ball).acceleration = Vector2.zero();
+    box1.getComponent(Box).acceleration = Vector2.zero();
     if(keysPressed["a"]){
-        ball1.getComponent(Ball).acceleration.x = -moveSpeed;
+        box1.getComponent(Box).acceleration.x = -moveSpeed;
     }
     if(keysPressed["d"]){
-        ball1.getComponent(Ball).acceleration.x = moveSpeed;
+        box1.getComponent(Box).acceleration.x = moveSpeed;
     }
     if(keysPressed["w"]){
-        ball1.getComponent(Ball).acceleration.y = moveSpeed;
+        box1.getComponent(Box).acceleration.y = moveSpeed;
     }
     if(keysPressed["s"]){
-        ball1.getComponent(Ball).acceleration.y = -moveSpeed;
+        box1.getComponent(Box).acceleration.y = -moveSpeed;
     }
     if(keysPressed["q"]){
         box1.getComponent(Box).angVel -= 0.05;
@@ -149,9 +140,6 @@ function update(){
     // ball3.getComponent(Ball).update();
     // Camera.position = new Vector2(player.transform.position.x, player.transform.position.y);
 
-    wall5.getComponent(LineRenderer).position1 = wall5wall.start;
-    wall5.getComponent(LineRenderer).position2 = wall5wall.end;
-
     if(gameIsRunning){
         Camera.update();
         ball1.getComponent(Ball).display();
@@ -159,38 +147,38 @@ function update(){
         // ctx.fillText("Distance: " + distanceVec.getMagnitude(), 450, 250);
         for(let a = 0; a < Wall.walls.length; a++){
             Wall.walls[a].update();
+            Wall.walls[a].draw();
         }
 
         for(let i = 0; i < Ball.balls.length; i++){
 
-            for(let a = 0; a < Wall.walls.length; a++){
-                if(coll_det_bw(Ball.balls[i], Wall.walls[a])){
-                    pen_res_bw(Ball.balls[i], Wall.walls[a]);
-                    coll_res_bw(Ball.balls[i], Wall.walls[a]);
-                }
-            }
+            // for(let a = 0; a < Wall.walls.length; a++){
+            //     if(coll_det_bw(Ball.balls[i], Wall.walls[a])){
+            //         pen_res_bw(Ball.balls[i], Wall.walls[a]);
+            //         coll_res_bw(Ball.balls[i], Wall.walls[a]);
+            //     }
+            // }
 
-            for(let j = i+1; j < Ball.balls.length; j++){
-                if(coll_det_bb(Ball.balls[i], Ball.balls[j])){
-                    pen_res_bb(Ball.balls[i], Ball.balls[j]);
-                    coll_res_bb(Ball.balls[i], Ball.balls[j]);
-                }
-
-            }
+            // for(let j = i+1; j < Ball.balls.length; j++){
+            //     if(coll_det_bb(Ball.balls[i], Ball.balls[j])){
+            //         pen_res_bb(Ball.balls[i], Ball.balls[j]);
+            //         coll_res_bb(Ball.balls[i], Ball.balls[j]);
+            //     }
+            // }
             Ball.balls[i].display();
             Ball.balls[i].update();
-
+            Ball.balls[i].draw();
         }
         for(let i = 0; i < Capsule.capsules.length; i++){
             Capsule.capsules[i].draw();
             Capsule.capsules[i].update();
-            for(let j = i + 1; j < Capsule.capsules.length; j++){
-                if(coll_det_cc(Capsule.capsules[i], Capsule.capsules[j])){
-                    ctx.fillText("Collide", 500, 400);
-                    pen_res_cc(Capsule.capsules[i], Capsule.capsules[j]);
-                    coll_res_cc(Capsule.capsules[i], Capsule.capsules[j]);
-                }
-            }
+            // for(let j = i + 1; j < Capsule.capsules.length; j++){
+            //     if(coll_det_cc(Capsule.capsules[i], Capsule.capsules[j])){
+            //         ctx.fillText("Collide", 500, 400);
+            //         pen_res_cc(Capsule.capsules[i], Capsule.capsules[j]);
+            //         coll_res_cc(Capsule.capsules[i], Capsule.capsules[j]);
+            //     }
+            // }
         }
 
         // if(sat(wall5.getComponent(Wall), wall6.getComponent(Wall))){
@@ -203,10 +191,11 @@ function update(){
         box2.getComponent(Box).draw();
         box2.getComponent(Box).update();
 
-        if(sat(ball1.getComponent(Ball), wall1.getComponent(Wall))){
-            ctx.fillText("COLLISION", 500, 400);
+        if(sat(ball1.getComponent(Ball).comp[0], box1.getComponent(Box).comp[0])){
+            ctx.fillText("COLLISION", 500, 390);
         }
-
+        ctx.fillText("QE to rotate dont press arrow keys or break", 350, 350);
+        ctx.fillText("changing the way things work, might take a few days for it to work again", 250, 375);
         requestAnimationFrame(update);
     }
 }
