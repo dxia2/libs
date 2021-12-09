@@ -191,10 +191,31 @@ function update(){
         box2.getComponent(Box).draw();
         box2.getComponent(Box).update();
 
-        if(sat(caps1.getComponent(Capsule).comp[0], ball2.getComponent(Ball).comp[0])){
-            ctx.fillText("COLLISION", 500, 390);
+        let bestSat = {
+            pen: null,
+            axis: null,
+            vertex: null
         }
-        ctx.fillText("QE to rotate dont press arrow keys or break", 350, 350);
+
+
+        for(let i = 0; i < caps1.getComponent(Capsule).comp.length; i++){
+            for(let j = 0; j < caps2.getComponent(Capsule).comp.length; j++){
+                let satResults = sat(caps1.getComponent(Capsule).comp[i], caps2.getComponent(Capsule).comp[j]);
+                if(satResults.pen > bestSat.pen){
+                    bestSat = sat(caps1.getComponent(Capsule).comp[i], caps2.getComponent(Capsule).comp[j]);
+                    ctx.fillText(bestSat.pen, 500, 330);
+                    ctx.fillText("COLLISION", 500, 390);
+                }
+            }
+
+        }
+
+        if(bestSat.pen !== null){
+            bestSat.axis.drawVec(bestSat.vertex.x, bestSat.vertex.y, bestSat.pen, "blue");
+        }
+
+
+        ctx.fillText("Capsules can collide with each other, see in bottom corner", 325, 350);
         ctx.fillText("changing the way things work, might take a few days for it to work again", 250, 375);
         requestAnimationFrame(update);
     }

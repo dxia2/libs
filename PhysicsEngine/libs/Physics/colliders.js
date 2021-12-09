@@ -246,10 +246,15 @@ function sat(o1, o2){
    
 
     let contactVertex = projShapeOntoAxis(smallestAxis, vertexObj).collVertex;
-    smallestAxis.drawVec(contactVertex.x, contactVertex.y, minOverlap, "blue");
+    //smallestAxis.drawVec(contactVertex.x, contactVertex.y, minOverlap, "blue");
 
-    return true;
+    return {
+        pen: minOverlap,
+        axis: smallestAxis,
+        vertex: contactVertex
+    }
 }
+
 
 function findAxes(o1, o2){
     let axes = [];
@@ -347,6 +352,49 @@ function rotMx(angle){
     return mx;
 }
 
+class Body{
+    get position(){
+        return this.comp[0].position;
+    }
+    set position(value){
+        this.comp[0].position = value;
+    }
+    get inv_m(){
+        if(this.mass === 0){
+            return 0;
+        }else{
+            return 1 / this.mass;
+        }
+    }
+    static BODIES = [];
+    constructor(gameObject, position){
+        this.gameObject = gameObject;
+        this.comp = [];
+        this.position = position;
+        this.mass = 0;
+        this.inv_m = 0;
+        this.inertia = 0;
+        this.inv_inertia = 0;
+        this.elasticity = 0;
+
+        this.velocity = new Vector2(0, 0);
+        this.acceleration = new Vector2(0, 0);
+        Body.BODIES.push(this);
+    }
+
+    draw(){
+
+    }
+
+    display(){
+
+    }
+
+    update(){
+
+    }
+}
+
 class Ball{
     gameObject;
     radius;
@@ -357,13 +405,7 @@ class Ball{
     drag = new Vector2(0, 0);
     mass = 1;
     elasticity = 1;
-    get inv_m(){
-        if(this.mass === 0){
-            return 0;
-        }else{
-            return 1 / this.mass;
-        }
-    }
+
 
     static balls = [];
 
@@ -372,6 +414,13 @@ class Ball{
     }
     set position(value){
         this.comp[0].position = value;
+    }
+    get inv_m(){
+        if(this.mass === 0){
+            return 0;
+        }else{
+            return 1 / this.mass;
+        }
     }
 
 
