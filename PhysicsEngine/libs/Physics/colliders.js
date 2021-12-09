@@ -483,12 +483,12 @@ class Capsule{
         this.gameObject = gameObject;
         this.radius = radius;
 
-        let start = new Vector2(offset.x - (length / 2), offset.y);
-        let end = new Vector2(offset.x + (length / 2), offset.y);
+        let start = new Vector2(offset.x, offset.y + (length / 2));
+        let end = new Vector2(offset.x, offset.y - (length / 2));
         this.length = Vector2.subtract(end, start).getMagnitude();
 
         this.comp = [new Circle(gameObject, start, radius), new Circle(gameObject, end, radius)];
-        this.comp.unshift(new Rectangle(gameObject, offset, new Vector2(this.length, this.radius * 2)));
+        this.comp.unshift(new Rectangle(gameObject, offset, new Vector2(this.radius * 2, this.length)));
 
         this.acceleration = new Vector2(0, 0);
         this.velocity = new Vector2(0, 0);
@@ -505,11 +505,13 @@ class Capsule{
         this.comp[0].draw();
         this.comp[1].draw();
         this.comp[2].draw();
+
     }
 
     update(){
         this.updateVelocity();
         this.updatePosition();
+        this.comp[0].update();
     }
 
     updateVelocity(){
@@ -519,11 +521,15 @@ class Capsule{
         this.velocity.y += this.acceleration.y * deltaTime;
         this.comp[0].angle += this.angVel * deltaTime;
         this.angVel *= 0.96;
+
     }
 
     updatePosition(){
-        this.comp[0].position.x += this.velocity.x * deltaTime;
-        this.comp[0].position.y += this.velocity.y * deltaTime;
+        this.comp[0].position = Vector2.add(this.comp[0].position, Vector2.multiply(this.velocity, deltaTime));
+        let start = Vector2.multiply(this.comp[0].dir, this.length / 2);
+        let end = Vector2.multiply(this.comp[0].dir, -this.length / 2);
+        this.comp[1].offset = start;
+        this.comp[2].offset = end;
     }
 }
 class Box{
@@ -595,7 +601,6 @@ class Box{
     }
 
     updatePosition(){
-        console.log(this.position);
         this.comp[0].position = Vector2.add(this.comp[0].position, Vector2.multiply(this.velocity, deltaTime));
     }
 }
@@ -725,6 +730,7 @@ class Rectangle{
         this.verticies[3] = Vector2.add(Vector2.add(this.position, Vector2.multiply(this.dir, this.size.y / 2)), Vector2.multiply(this.dir.normal(), this.size.x / 2));
     }
     calculateRotation(){
+
         let rotMat = rotMx(this.angle);
         this.dir = rotMat.multiplyVec(this.refDir);
     }

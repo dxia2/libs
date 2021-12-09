@@ -92,18 +92,18 @@ function update(){
     // if(keysPressed["s"]){
     //     ball1.getComponent(Ball).acceleration.y = -moveSpeed;
     // }
-    box1.getComponent(Box).acceleration = Vector2.zero();
+    ball1.getComponent(Ball).acceleration = Vector2.zero();
     if(keysPressed["a"]){
-        box1.getComponent(Box).acceleration.x = -moveSpeed;
+        ball1.getComponent(Ball).acceleration.x = -moveSpeed;
     }
     if(keysPressed["d"]){
-        box1.getComponent(Box).acceleration.x = moveSpeed;
+        ball1.getComponent(Ball).acceleration.x = moveSpeed;
     }
     if(keysPressed["w"]){
-        box1.getComponent(Box).acceleration.y = moveSpeed;
+        ball1.getComponent(Ball).acceleration.y = moveSpeed;
     }
     if(keysPressed["s"]){
-        box1.getComponent(Box).acceleration.y = -moveSpeed;
+        ball1.getComponent(Ball).acceleration.y = -moveSpeed;
     }
     if(keysPressed["q"]){
         box1.getComponent(Box).angVel -= 0.05;
@@ -115,19 +115,19 @@ function update(){
     caps1.getComponent(Capsule).acceleration = Vector2.zero();
 
     if(keysPressed["ArrowLeft"]){
-        caps1.getComponent(Capsule).angVel = 5;
+        caps1.getComponent(Capsule).angVel += 0.1;
     }
     if(keysPressed["ArrowRight"]){
 
-        caps1.getComponent(Capsule).angVel = -5;
+        caps1.getComponent(Capsule).angVel -= 0.1;
     }
 
     if(keysPressed["ArrowUp"]){
-        caps1.getComponent(Capsule).acceleration = Vector2.multiply(Vector2.multiply(caps1.getComponent(Capsule).dir, -1), moveSpeed);
+        caps1.getComponent(Capsule).acceleration = Vector2.multiply(caps1.getComponent(Capsule).comp[0].dir, moveSpeed);
     }
     if(keysPressed["ArrowDown"]){
-        caps1.getComponent(Capsule).acceleration = Vector2.multiply(caps1.getComponent(Capsule).dir, moveSpeed);
-    }
+        caps1.getComponent(Capsule).acceleration = Vector2.multiply(Vector2.multiply(caps1.getComponent(Capsule).comp[0].dir, -1), moveSpeed);
+    }       
 
     // console.log(caps1.getComponent(Capsule).position);
 
@@ -191,7 +191,7 @@ function update(){
         box2.getComponent(Box).draw();
         box2.getComponent(Box).update();
 
-        if(sat(ball1.getComponent(Ball).comp[0], box1.getComponent(Box).comp[0])){
+        if(sat(caps1.getComponent(Capsule).comp[0], ball2.getComponent(Ball).comp[0])){
             ctx.fillText("COLLISION", 500, 390);
         }
         ctx.fillText("QE to rotate dont press arrow keys or break", 350, 350);
