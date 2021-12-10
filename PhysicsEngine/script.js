@@ -25,22 +25,22 @@ ball3.transform.position.x += 50
 ball3.addComponent(new Ball(ball3, new Vector2(0, 0), 50, new Vector2(0, 0), new Vector2(0, 0), 0.6, 10));
 
 let wall1 = new GameObject();
-wall1.addComponent(new Wall(wall1, new Vector2(-300, 200), new Vector2(-300, -200)));
+wall1.addComponent(new Wall(wall1, new Vector2(-300, 199), new Vector2(-300, -199)));
 wall1.name = "wall1";
 
 let wall2 = new GameObject();
-wall2.addComponent(new Wall(wall2, new Vector2(300, 200), new Vector2(300, -200)));
+wall2.addComponent(new Wall(wall2, new Vector2(300, 199), new Vector2(300, -199)));
 wall2.name = "wall2";
 
 let wall3 = new GameObject();
-wall3.addComponent(new Wall(wall3, new Vector2(-300, -200), new Vector2(300, -200)));
+wall3.addComponent(new Wall(wall3, new Vector2(-299, -200), new Vector2(299, -200)));
 
 let wall4 = new GameObject();
-wall4.addComponent(new Wall(wall4, new Vector2(-300, 200), new Vector2(300, 200)));
+wall4.addComponent(new Wall(wall4, new Vector2(-299, 200), new Vector2(299, 200)));
 
-let wall5 = new GameObject();
-wall5.addComponent(new Wall(wall5, new Vector2(-50, 0), new Vector2(50, 0)));
-let wall5wall = wall5.getComponent(Wall);
+// let wall5 = new GameObject();
+// wall5.addComponent(new Wall(wall5, new Vector2(-50, 0), new Vector2(50, 0)));
+// let wall5wall = wall5.getComponent(Wall);
 
 let wall6 = new GameObject();
 wall6.addComponent(new Wall(wall6, new Vector2(50, 50), new Vector2(0, -50)));
@@ -48,7 +48,7 @@ wall6.addComponent(new Wall(wall6, new Vector2(50, 50), new Vector2(0, -50)));
 wall6.transform.position.x -= 100;
 
 let caps1 = new GameObject();
-caps1.transform.position.y = 150;
+caps1.transform.position.y = 175;
 caps1.transform.position.x = 250;
 
 caps1.addComponent(new Capsule(caps1, 100, new Vector2(0, 0), 40, 0.6, 3));
@@ -66,6 +66,7 @@ box1.transform.position.x -= 150;
 
 let box2 = new GameObject();
 box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(50, 100), 5, 0.6));
+box2.transform.position.y -= 125;
 
 let gameIsRunning = true;
 let moveSpeed = 250;
@@ -73,7 +74,6 @@ let moveSpeed = 250;
 let distanceVec = new Vector2(0, 0);
 requestAnimationFrame(update);
 function update(){
-
     ball1.getComponent(Ball).acceleration.x = 0;
     ball1.getComponent(Ball).acceleration.y = 0;
 
@@ -143,79 +143,42 @@ function update(){
     if(gameIsRunning){
         Camera.update();
         ball1.getComponent(Ball).display();
-        // distanceVec = Vector2.subtract(ball2.getComponent(Ball).position, ball1.getComponent(Ball).position);
-        // ctx.fillText("Distance: " + distanceVec.getMagnitude(), 450, 250);
-        for(let a = 0; a < Wall.walls.length; a++){
-            Wall.walls[a].update();
-            Wall.walls[a].draw();
-        }
+        
+        Body.BODIES.forEach((b, index) =>{
+            b.draw();
+            b.update();
+            for(let bodyPair = index + 1; bodyPair < Body.BODIES.length; bodyPair++){
 
-        for(let i = 0; i < Ball.balls.length; i++){
+                let bestSat = {
+                    pen: null,
+                    axis: null,
+                    vertex: null
+                }
+        
+                for(let i = 0; i < Body.BODIES[index].comp.length; i++){
+                    for(let j = 0; j < Body.BODIES[bodyPair].comp.length; j++){
+                        let satResults = sat(Body.BODIES[index].comp[i], Body.BODIES[bodyPair].comp[j]);
+                        if(satResults.pen > bestSat.pen){
+                            bestSat = satResults;
+                            // bestSat = sat(caps1.getComponent(Capsule).comp[i], caps2.getComponent(Capsule).comp[j]);
+                            ctx.fillText(bestSat.pen, 500, 330);
+                            ctx.fillText("COLLISION", 500, 390);
+                        }
+                    }
+        
+                }
 
-            // for(let a = 0; a < Wall.walls.length; a++){
-            //     if(coll_det_bw(Ball.balls[i], Wall.walls[a])){
-            //         pen_res_bw(Ball.balls[i], Wall.walls[a]);
-            //         coll_res_bw(Ball.balls[i], Wall.walls[a]);
-            //     }
-            // }
+                // axos is backwards for box and circle for some reason
 
-            // for(let j = i+1; j < Ball.balls.length; j++){
-            //     if(coll_det_bb(Ball.balls[i], Ball.balls[j])){
-            //         pen_res_bb(Ball.balls[i], Ball.balls[j]);
-            //         coll_res_bb(Ball.balls[i], Ball.balls[j]);
-            //     }
-            // }
-            Ball.balls[i].display();
-            Ball.balls[i].update();
-            Ball.balls[i].draw();
-        }
-        for(let i = 0; i < Capsule.capsules.length; i++){
-            Capsule.capsules[i].draw();
-            Capsule.capsules[i].update();
-            // for(let j = i + 1; j < Capsule.capsules.length; j++){
-            //     if(coll_det_cc(Capsule.capsules[i], Capsule.capsules[j])){
-            //         ctx.fillText("Collide", 500, 400);
-            //         pen_res_cc(Capsule.capsules[i], Capsule.capsules[j]);
-            //         coll_res_cc(Capsule.capsules[i], Capsule.capsules[j]);
-            //     }
-            // }
-        }
-
-        // if(sat(wall5.getComponent(Wall), wall6.getComponent(Wall))){
-
-        //     ctx.fillText("COLLISION", 500, 400);
-        // }
-
-        box1.getComponent(Box).draw();
-        box1.getComponent(Box).update();
-        box2.getComponent(Box).draw();
-        box2.getComponent(Box).update();
-
-        let bestSat = {
-            pen: null,
-            axis: null,
-            vertex: null
-        }
-
-
-        for(let i = 0; i < caps1.getComponent(Capsule).comp.length; i++){
-            for(let j = 0; j < caps2.getComponent(Capsule).comp.length; j++){
-                let satResults = sat(caps1.getComponent(Capsule).comp[i], caps2.getComponent(Capsule).comp[j]);
-                if(satResults.pen > bestSat.pen){
-                    bestSat = sat(caps1.getComponent(Capsule).comp[i], caps2.getComponent(Capsule).comp[j]);
-                    ctx.fillText(bestSat.pen, 500, 330);
-                    ctx.fillText("COLLISION", 500, 390);
+                if(bestSat.pen != null){
+                    let penResolution = Vector2.multiply(bestSat.axis, bestSat.pen / Body.BODIES[index].inv_m + Body.BODIES[bodyPair].inv_m);
+                    Body.BODIES[index].position = Vector2.add(Body.BODIES[index].position, Vector2.multiply(penResolution, -Body.BODIES[index].inv_m));
+                    Body.BODIES[bodyPair].position = Vector2.add(Body.BODIES[bodyPair].position, Vector2.multiply(penResolution, Body.BODIES[bodyPair].inv_m));
                 }
             }
+        })
 
-        }
-
-        if(bestSat.pen !== null){
-            bestSat.axis.drawVec(bestSat.vertex.x, bestSat.vertex.y, bestSat.pen, "blue");
-        }
-
-
-        ctx.fillText("Capsules can collide with each other, see in bottom corner", 325, 350);
+        ctx.fillText("circles can collide with each other but rectangle no work", 325, 350);
         ctx.fillText("changing the way things work, might take a few days for it to work again", 250, 375);
         requestAnimationFrame(update);
     }

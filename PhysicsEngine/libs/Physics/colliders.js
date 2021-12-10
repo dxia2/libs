@@ -1,5 +1,4 @@
 
-
 function pen_res_bb(b1, b2){
     let dist = Vector2.subtract(b1.position, b2.position);
     let pen_depth = b1.radius + b2.radius - dist.getMagnitude();
@@ -193,7 +192,6 @@ function coll_res_cc(c1, c2){
 
     c1.angVel += c1.inv_inertia * Vector2.cross(collArm1, impulseVec);
     c2.angVel -= c2.inv_inertia * Vector2.cross(collArm2, impulseVec); 
-
  
 }
 // Separating axis theorem
@@ -247,6 +245,10 @@ function sat(o1, o2){
 
     let contactVertex = projShapeOntoAxis(smallestAxis, vertexObj).collVertex;
     //smallestAxis.drawVec(contactVertex.x, contactVertex.y, minOverlap, "blue");
+
+    if(vertexObj === o2){
+        smallerAxis = Vector2.multiply(smallestAxis, -1);
+    }
 
     return {
         pen: minOverlap,
@@ -366,19 +368,26 @@ class Body{
             return 1 / this.mass;
         }
     }
+    get inv_inertia(){
+        if(this.inertia === 0){
+            return 0;
+        }else{
+            return 1 / this.inertia;
+        }
+    }
+
     static BODIES = [];
-    constructor(gameObject, position){
+    constructor(gameObject){
         this.gameObject = gameObject;
         this.comp = [];
-        this.position = position;
-        this.mass = 0;
-        this.inv_m = 0;
+        this.mass = 1;
         this.inertia = 0;
-        this.inv_inertia = 0;
         this.elasticity = 0;
+        this.drag = 0.5;
 
         this.velocity = new Vector2(0, 0);
         this.acceleration = new Vector2(0, 0);
+        this.angVel = 0;
         Body.BODIES.push(this);
     }
 
@@ -395,46 +404,13 @@ class Body{
     }
 }
 
-class Ball{
-    gameObject;
-    radius;
-
-    //------
-    velocity = new Vector2(0, 0);
-    acceleration = new Vector2(0, 0);
-    drag = new Vector2(0, 0);
-    mass = 1;
-    elasticity = 1;
-
-
-    static balls = [];
-
-    get position(){
-        return this.comp[0].position;
-    }
-    set position(value){
-        this.comp[0].position = value;
-    }
-    get inv_m(){
-        if(this.mass === 0){
-            return 0;
-        }else{
-            return 1 / this.mass;
-        }
-    }
-
+class Ball extends Body{
 
     constructor(gameObject, offset, radius, velocity, acceleration, drag, mass){
-        this.gameObject = gameObject;
-        this.comp = [new Circle(gameObject, offset, radius)];
-
-        this.radius = radius;
-        this.velocity = velocity;
-        this.acceleration = acceleration;
+        super(gameObject);
         this.drag = drag;
         this.mass = mass;
-
-        Ball.balls.push(this);
+        this.comp = [new Circle(gameObject, offset, radius)];
         this.update();
     }
 
@@ -465,23 +441,12 @@ class Ball{
     }
 }
 
-class Wall{
-    gameObject;
-    mass = 0;
-    get inv_m(){
-        return 0;
-    }
-    inertia = 0;
-    get inv_inertia(){
-        return 0;
-    }
+class Wall extends Body{
 
-    static walls = [];
     constructor(gameObject, start, end){
+        super(gameObject);
+        this.mass = 0;
         this.comp = [new Line(gameObject, start, end)];
-        this.gameObject = gameObject;
-
-        Wall.walls.push(this);
     }
 
     update(){
@@ -493,42 +458,13 @@ class Wall{
     }
 }
 
-class Capsule{
+class Capsule extends Body{
     gameObject;
     radius;
 
-    acceleration;
-    velocity;
     length;
-    drag;
-    angVel;
-    mass;
-    elasticity = 1;
-    inertia;
-    get inv_m(){
-        if(this.mass === 0){
-            return 0;
-        }else{
-            return 1 / this.mass;
-        }
-    }
-
-    get inv_inertia(){
-        if(this.inertia === 0){
-            return 0;
-        }else{
-            return 1 / this.inertia;
-        }
-    }
-    get position(){
-        return this.comp[0].position;
-    }
-    set position(value){
-        this.comp[0].position = value;
-    }
-
-    static capsules = [];
     constructor(gameObject, length, offset, radius, drag, mass){
+        super(gameObject);
         this.gameObject = gameObject;
         this.radius = radius;
 
@@ -538,16 +474,6 @@ class Capsule{
 
         this.comp = [new Circle(gameObject, start, radius), new Circle(gameObject, end, radius)];
         this.comp.unshift(new Rectangle(gameObject, offset, new Vector2(this.radius * 2, this.length)));
-
-        this.acceleration = new Vector2(0, 0);
-        this.velocity = new Vector2(0, 0);
-        this.drag = drag;
-        this.mass = mass;
-        this.inertia = this.mass * ((2*this.radius)**2 + (this.length + 2 * this.radius) ** 2) / 12;
-
-        this.angVel = 0;
-
-        Capsule.capsules.push(this);
     }
 
     draw(){
@@ -581,38 +507,8 @@ class Capsule{
         this.comp[2].offset = end;
     }
 }
-class Box{
+class Box extends Body{
     size;
-    mass;
-    get inv_m(){
-        if(this.mass === 0){
-            return 0;
-        }else{
-            return 1 / this.mass;
-        }
-    }
-    get inertia(){
-        return this.mass * (this.size.x**2 + (this.size.y + 2 * this.size.x)**2) / 12;
-    }
-    get inv_inertia(){
-        if(this.mass === 0){
-            return 0;
-        }else{
-            return 1 / this.inertia;
-        }
-    }
-    
-    get position(){
-        return this.comp[0].position;
-    }
-    set position(value){
-        this.comp[0].position = value;
-    }
-    velocity = new Vector2(0, 0);
-    acceleration = new Vector2(0, 0);
-    elasticity = 1;
-    gameObject;
-    drag;
     get angle(){
         return ExtendedMath.degToRad(this.gameObject.transform.rotation);
     }
@@ -620,13 +516,11 @@ class Box{
     set angle(value){
         this.gameObject.transform.rotation = ExtendedMath.radToDeg(value);
     }
-    angVel = 0;
     constructor(gameObject, offset, size, mass, drag){
-        this.comp = [new Rectangle(gameObject, offset, size)];
-        this.gameObject = gameObject;
-        this.size = size;
-        this.drag = drag;
+        super(gameObject);
         this.mass = mass;
+        this.comp = [new Rectangle(gameObject, offset, size)];
+        this.size = size;
         this.update();
     }
 
@@ -678,13 +572,18 @@ class Line{
     set end(value){
         this.localEnd = Vector2.subtract(value, this.gameObject.transform.position);
     }
+
+    get position(){
+        return new Vector2((this.start.x + this.end.x) / 2, (this.start.y + this.end.y) / 2);
+    }
+    set position(value){
+        this.gameObject.transform.position = value;
+    }
     constructor(gameObject, start, end){
         this.gameObject = gameObject;
         this.localStart = start;
         this.localEnd = end;
         this.verticies = [this.start, this.end];
-
-        Wall.walls.push(this);
     }
 
     update(){
