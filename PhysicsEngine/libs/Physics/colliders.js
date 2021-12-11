@@ -247,7 +247,7 @@ function sat(o1, o2){
     //smallestAxis.drawVec(contactVertex.x, contactVertex.y, minOverlap, "blue");
 
     if(vertexObj === o2){
-        smallerAxis = Vector2.multiply(smallestAxis, -1);
+        smallestAxis = Vector2.multiply(smallestAxis, -1);
     }
 
     return {
@@ -313,7 +313,7 @@ function closestVertexToPoint(obj, p){
     let closestVertex;
     let minDist = null;
     for(let i = 0; i < obj.verticies.length; i++){
-        if(Vector2.subtract(p, obj.verticies[i].getMagnitude() < minDist || minDist === null)){
+        if(Vector2.subtract(p, obj.verticies[i]).getMagnitude() < minDist || minDist === null){
             closestVertex = obj.verticies[i];
             minDist = Vector2.subtract(p, obj.verticies[i]).getMagnitude(); 
         }
@@ -447,6 +447,7 @@ class Wall extends Body{
         super(gameObject);
         this.mass = 0;
         this.comp = [new Line(gameObject, start, end)];
+
     }
 
     update(){
@@ -467,12 +468,15 @@ class Capsule extends Body{
         super(gameObject);
         this.gameObject = gameObject;
         this.radius = radius;
+        this.mass = mass;
+        this.drag = drag;
 
         let start = new Vector2(offset.x, offset.y + (length / 2));
         let end = new Vector2(offset.x, offset.y - (length / 2));
         this.length = Vector2.subtract(end, start).getMagnitude();
 
         this.comp = [new Circle(gameObject, start, radius), new Circle(gameObject, end, radius)];
+        
         this.comp.unshift(new Rectangle(gameObject, offset, new Vector2(this.radius * 2, this.length)));
     }
 
@@ -487,6 +491,8 @@ class Capsule extends Body{
         this.updateVelocity();
         this.updatePosition();
         this.comp[0].update();
+        // this.comp[1].update();
+        // this.comp[2].update();
     }
 
     updateVelocity(){
@@ -574,9 +580,13 @@ class Line{
     }
 
     get position(){
-        return new Vector2((this.start.x + this.end.x) / 2, (this.start.y + this.end.y) / 2);
+        let midPoint = new Vector2((this.start.x + this.end.x) / 2, (this.start.y + this.end.y) / 2);
+        return this.gameObject.transform.position;
+        return midPoint;
     }
     set position(value){
+        // let midPoint = new Vector2((this.localStart.x + this.localEnd.x) / 2, (this.localStart.y + this.localEnd.y) / 2);
+        // this.gameObject.transform.position = Vector2.add(midPoint, value);
         this.gameObject.transform.position = value;
     }
     constructor(gameObject, start, end){

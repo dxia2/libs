@@ -36,30 +36,26 @@ let wall3 = new GameObject();
 wall3.addComponent(new Wall(wall3, new Vector2(-299, -200), new Vector2(299, -200)));
 
 let wall4 = new GameObject();
-wall4.addComponent(new Wall(wall4, new Vector2(-299, 200), new Vector2(299, 200)));
-
-// let wall5 = new GameObject();
-// wall5.addComponent(new Wall(wall5, new Vector2(-50, 0), new Vector2(50, 0)));
-// let wall5wall = wall5.getComponent(Wall);
+wall4.addComponent(new Wall(wall4, new Vector2(-300, 200), new Vector2(300, 200)));
+wall4.name = "wall4";
 
 let wall6 = new GameObject();
 wall6.addComponent(new Wall(wall6, new Vector2(50, 50), new Vector2(0, -50)));
 
 wall6.transform.position.x -= 100;
 
-let caps1 = new GameObject();
-caps1.transform.position.y = 175;
-caps1.transform.position.x = 250;
+// let caps1 = new GameObject();
+// caps1.transform.position.y = 175;
+// caps1.transform.position.x = 250;
 
-caps1.addComponent(new Capsule(caps1, 100, new Vector2(0, 0), 40, 0.6, 3));
-caps1.getComponent(Capsule).angle = 90 / (180 /  Math.PI);
+// caps1.addComponent(new Capsule(caps1, 100, new Vector2(0, 0), 40, 0.6, 3));
+// caps1.getComponent(Capsule).angle = 90 / (180 /  Math.PI);
 
 let caps2 = new GameObject();
 caps2.transform.position.y = 0;
 caps2.transform.position.x = 200;
 caps2.addComponent(new Capsule(caps2, 100, new Vector2(0, 0), 40, 0.6, 3));
 
-//CREATE BOX AND TEST
 let box1 = new GameObject();
 box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(100, 50), 5, 0.6));
 box1.transform.position.x -= 150;
@@ -111,23 +107,23 @@ function update(){
     if(keysPressed["e"]){
         box1.getComponent(Box).angVel += 0.05;
     }
-    // Key control Arrow keys
-    caps1.getComponent(Capsule).acceleration = Vector2.zero();
+    // // Key control Arrow keys
+    // caps1.getComponent(Capsule).acceleration = Vector2.zero();
 
-    if(keysPressed["ArrowLeft"]){
-        caps1.getComponent(Capsule).angVel += 0.1;
-    }
-    if(keysPressed["ArrowRight"]){
+    // if(keysPressed["ArrowLeft"]){
+    //     caps1.getComponent(Capsule).angVel += 0.1;
+    // }
+    // if(keysPressed["ArrowRight"]){
 
-        caps1.getComponent(Capsule).angVel -= 0.1;
-    }
+    //     caps1.getComponent(Capsule).angVel -= 0.1;
+    // }
 
-    if(keysPressed["ArrowUp"]){
-        caps1.getComponent(Capsule).acceleration = Vector2.multiply(caps1.getComponent(Capsule).comp[0].dir, moveSpeed);
-    }
-    if(keysPressed["ArrowDown"]){
-        caps1.getComponent(Capsule).acceleration = Vector2.multiply(Vector2.multiply(caps1.getComponent(Capsule).comp[0].dir, -1), moveSpeed);
-    }       
+    // if(keysPressed["ArrowUp"]){
+    //     caps1.getComponent(Capsule).acceleration = Vector2.multiply(caps1.getComponent(Capsule).comp[0].dir, moveSpeed);
+    // }
+    // if(keysPressed["ArrowDown"]){
+    //     caps1.getComponent(Capsule).acceleration = Vector2.multiply(Vector2.multiply(caps1.getComponent(Capsule).comp[0].dir, -1), moveSpeed);
+    // }       
 
     // console.log(caps1.getComponent(Capsule).position);
 
@@ -157,12 +153,9 @@ function update(){
         
                 for(let i = 0; i < Body.BODIES[index].comp.length; i++){
                     for(let j = 0; j < Body.BODIES[bodyPair].comp.length; j++){
-                        let satResults = sat(Body.BODIES[index].comp[i], Body.BODIES[bodyPair].comp[j]);
-                        if(satResults.pen > bestSat.pen){
-                            bestSat = satResults;
-                            // bestSat = sat(caps1.getComponent(Capsule).comp[i], caps2.getComponent(Capsule).comp[j]);
-                            ctx.fillText(bestSat.pen, 500, 330);
-                            ctx.fillText("COLLISION", 500, 390);
+                        if(sat(Body.BODIES[index].comp[i], Body.BODIES[bodyPair].comp[j]).pen > bestSat.pen){
+                            bestSat = sat(Body.BODIES[index].comp[i], Body.BODIES[bodyPair].comp[j]);
+                            ctx.fillText("Collision", 500, 380);
                         }
                     }
         
@@ -171,9 +164,12 @@ function update(){
                 // axos is backwards for box and circle for some reason
 
                 if(bestSat.pen != null){
+                    
                     let penResolution = Vector2.multiply(bestSat.axis, bestSat.pen / Body.BODIES[index].inv_m + Body.BODIES[bodyPair].inv_m);
-                    Body.BODIES[index].position = Vector2.add(Body.BODIES[index].position, Vector2.multiply(penResolution, -Body.BODIES[index].inv_m));
-                    Body.BODIES[bodyPair].position = Vector2.add(Body.BODIES[bodyPair].position, Vector2.multiply(penResolution, Body.BODIES[bodyPair].inv_m));
+                    console.log(Vector2.add(Body.BODIES[index].comp[0].position, Vector2.multiply(penResolution, Body.BODIES[index].inv_m)));
+                    Body.BODIES[index].comp[0].position = Vector2.add(Body.BODIES[index].comp[0].position, Vector2.multiply(penResolution, Body.BODIES[index].inv_m));
+                    Body.BODIES[bodyPair].comp[0].position = Vector2.add(Body.BODIES[bodyPair].comp[0].position, Vector2.multiply(penResolution, -Body.BODIES[bodyPair].inv_m));
+
                 }
             }
         })
