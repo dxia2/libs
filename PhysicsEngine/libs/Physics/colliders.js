@@ -354,6 +354,84 @@ function rotMx(angle){
     return mx;
 }
 
+class CollData{
+    static COLLISIONS = [];
+    constructor(o1, o2, normal, pen, cp){
+        this.o1 = o1;
+        this.o2 = o2;
+        this.normal = normal;
+        this.pen = pen;
+        this.cp = cp;
+    }
+
+    penRes(){
+        let penResolution = Vector2.multiply(this.normal, this.pen / (this.o1.inv_m + this.o2.inv_m));
+        this.o1.position = Vector2.add(this.o1.position, Vector2.multiply(penResolution, this.o1.inv_m));
+        this.o2.position = Vector2.add(this.o2.position, Vector2.multiply(penResolution, -this.o2.inv_m));
+    }
+
+    collRes(){
+        
+        //1. closing velocity
+        let collArm1 = Vector2.subtract(this.cp, this.o1.position);
+        let rotVel1 = new Vector2(-this.o1.angVel * collArm1.y, this.o1.angVel * collArm1.x);
+        let closVel1 = Vector2.add(this.o1.velocity, rotVel1);
+
+        let collArm2 = Vector2.subtract(this.cp, this.o2.position);
+        let rotVel2 = new Vector2(-this.o2.angVel * collArm2.y, this.o2.angVel * collArm2.x);
+        let closVel2 = Vector2.add(this.o2.velocity, rotVel2);
+
+        //2. Impulse augmentation
+        let impAug1 = Vector2.cross(collArm1, this.normal);
+        impAug1 = impAug1 * this.o1.inv_inertia * impAug1;
+        let impAug2 = Vector2.cross(collArm2, this.normal);
+        impAug2 = impAug2 * this.o2.inv_inertia * impAug2;
+
+        let relVel = Vector2.subtract(closVel1, closVel2);
+        let sepVel = Vector2.dot(relVel, this.normal);
+        let new_sepVel = -sepVel * Math.min(this.o1.elasticity, this.o2.elasticity);
+        let vsep_diff = new_sepVel - sepVel;
+
+        let impulse = vsep_diff / (this.o1.inv_m + this.o2.inv_m + impAug1 + impAug2);
+        let impulseVec = Vector2.multiply(this.normal, impulse);
+
+        //3. Changing the velocities
+        this.o1.velocity = Vector2.add(this.o1.velocity, Vector2.multiply(impulseVec, this.o1.inv_m));
+        this.o2.velocity = Vector2.add(this.o2.velocity, Vector2.multiply(impulseVec, -this.o2.inv_m));
+
+        this.o1.angVel += this.o1.inv_inertia * Vector2.cross(collArm1, impulseVec);
+        this.o2.angVel -= this.o2.inv_inertia * Vector2.cross(collArm2, impulseVec);
+        // //1. Closing velocity
+        // let collArm1 = this.cp.subtr(this.o1.comp[0].position);
+        // let rotVel1 = new Vector2(-this.o1.angVel * collArm1.y, this.o1.angVel * collArm1.x);
+        // let closVel1 = this.o1.velocity.add(rotVel1);
+        // let collArm2 = this.cp.subtr(this.o2.comp[0].position);
+        // let rotVel2= new Vector2(-this.o2.angVel * collArm2.y, this.o2.angVel * collArm2.x);
+        // let closVel2 = this.o2.velocity.add(rotVel2);
+
+        // //2. Impulse augmentation
+        // let impAug1 = Vector2.cross(collArm1, this.normal);
+        // impAug1 = impAug1 * this.o1.inv_inertia * impAug1;
+        // let impAug2 = Vector2.cross(collArm2, this.normal);
+        // impAug2 = impAug2 * this.o2.inv_inertia * impAug2;
+
+        // let relVel = closVel1.subtr(closVel2);
+        // let sepVel = Vector2.dot(relVel, this.normal);
+        // let new_sepVel = -sepVel * Math.min(this.o1.elasticity, this.o2.elasticity);
+        // let vsep_diff = new_sepVel - sepVel;
+
+        // let impulse = vsep_diff / (this.o1.inv_m + this.o2.inv_m + impAug1 + impAug2);
+        // let impulseVec = this.normal.mult(impulse);
+
+        // //3. Changing the velocities
+        // this.o1.velocity = this.o1.velocity.add(impulseVec.mult(this.o1.inv_m));
+        // this.o2.velocity = this.o2.velocity.add(impulseVec.mult(-this.o2.inv_m));
+
+        // this.o1.angVel += this.o1.inv_inertia * Vector2.cross(collArm1, impulseVec);
+        // this.o2.angVel -= this.o2.inv_inertia * Vector2.cross(collArm2, impulseVec); 
+    }
+}
+
 class Body{
     get position(){
         return this.comp[0].position;
@@ -368,6 +446,9 @@ class Body{
             return 1 / this.mass;
         }
     }
+    get inertia(){
+        return 0;
+    }
     get inv_inertia(){
         if(this.inertia === 0){
             return 0;
@@ -381,8 +462,7 @@ class Body{
         this.gameObject = gameObject;
         this.comp = [];
         this.mass = 1;
-        this.inertia = 0;
-        this.elasticity = 0;
+        this.elasticity = 1;
         this.drag = 0.5;
 
         this.velocity = new Vector2(0, 0);
@@ -447,7 +527,6 @@ class Wall extends Body{
         super(gameObject);
         this.mass = 0;
         this.comp = [new Line(gameObject, start, end)];
-
     }
 
     update(){
@@ -464,6 +543,10 @@ class Capsule extends Body{
     radius;
 
     length;
+
+    get inertia(){
+        return this.mass * ((2 * this.comp[0].size.x)**2 + (this.comp[0].size.y + 2 * this.comp[0].size.x)**2) / 12;
+    }
     constructor(gameObject, length, offset, radius, drag, mass){
         super(gameObject);
         this.gameObject = gameObject;
@@ -501,7 +584,7 @@ class Capsule extends Body{
         this.velocity.x += this.acceleration.x * deltaTime;
         this.velocity.y += this.acceleration.y * deltaTime;
         this.comp[0].angle += this.angVel * deltaTime;
-        this.angVel *= 0.96;
+        this.angVel *= 1;
 
     }
 
@@ -522,11 +605,15 @@ class Box extends Body{
     set angle(value){
         this.gameObject.transform.rotation = ExtendedMath.radToDeg(value);
     }
+    get inertia(){
+        return this.mass * (this.comp[0].size.x**2 +this.comp[0].size.y**2) / 12;
+    }
     constructor(gameObject, offset, size, mass, drag){
         super(gameObject);
         this.mass = mass;
         this.comp = [new Rectangle(gameObject, offset, size)];
         this.size = size;
+        this.drag = drag;
         this.update();
     }
 
@@ -546,7 +633,7 @@ class Box extends Body{
         this.velocity.x += this.acceleration.x * deltaTime;
         this.velocity.y += this.acceleration.y * deltaTime;
         this.comp[0].angle += this.angVel * deltaTime;
-        this.angVel *= 0.96;
+        this.angVel *= 1;
     }
 
     updatePosition(){
@@ -555,7 +642,6 @@ class Box extends Body{
 }
 
 class Line{
-    gameObject;
     localStart;
     localEnd;
 
@@ -580,9 +666,7 @@ class Line{
     }
 
     get position(){
-        let midPoint = new Vector2((this.start.x + this.end.x) / 2, (this.start.y + this.end.y) / 2);
         return this.gameObject.transform.position;
-        return midPoint;
     }
     set position(value){
         // let midPoint = new Vector2((this.localStart.x + this.localEnd.x) / 2, (this.localStart.y + this.localEnd.y) / 2);
