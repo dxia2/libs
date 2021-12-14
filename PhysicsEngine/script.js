@@ -18,7 +18,7 @@ let ball2 = new GameObject();
 // ball2.addComponent(new SpriteRenderer(ball2, ctx, circleImg, 50, 50));
 ball2.addComponent(new Ball(ball2, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0, 2));
 ball2.transform.position = new Vector2(50, 150);
-ball2.getComponent(Ball).velocity = new Vector2(Math.random() * 500, Math.random() * 500);
+// ball2.getComponent(Ball).velocity = new Vector2(Math.random() * 500, Math.random() * 500);
 
 // let ball3 = new GameObject();
 // ball3.transform.position.x += 50
@@ -46,27 +46,32 @@ wall4.name = "wall4";
 
 // wall6.transform.position.x -= 100;
 
-let caps1 = new GameObject();
-caps1.transform.position.y = 175;
-caps1.transform.position.x = 250;
+// let caps1 = new GameObject();
+// caps1.transform.position.y = 175;
+// caps1.transform.position.x = 250;
 
-caps1.addComponent(new Capsule(caps1, 60, new Vector2(0, 0), 20, 0, 1.5));
-caps1.getComponent(Capsule).angle = 90 / (180 /  Math.PI);
+// caps1.addComponent(new Capsule(caps1, 60, new Vector2(0, 0), 20, 0, 1.5));
+// caps1.getComponent(Capsule).angle = 90 / (180 /  Math.PI);
 
-let caps2 = new GameObject();
-caps2.transform.position.y = 0;
-caps2.transform.position.x = 200;
-caps2.addComponent(new Capsule(caps2, 100, new Vector2(0, 0), 40, 0, 3));
-caps2.getComponent(Capsule).velocity = new Vector2(Math.random() * 500, Math.random() * 500);
-caps2.getComponent(Capsule).angVel = Math.random();
+// let caps2 = new GameObject();
+// caps2.transform.position.y = 0;
+// caps2.transform.position.x = 200;
+// caps2.addComponent(new Capsule(caps2, 100, new Vector2(0, 0), 40, 0, 3));
+// caps2.getComponent(Capsule).velocity = new Vector2(Math.random() * 500, Math.random() * 500);
+// caps2.getComponent(Capsule).angVel = Math.random();
 
 let box1 = new GameObject();
-box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(100, 50), 5, 0));
+box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(50, 30), 5, 0));
 box1.transform.position.x -= 150;
+box1.getComponent(Box).velocity = new Vector2(-50, 0);
+box1.name = "box1";
 
-let box2 = new GameObject();
-box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(50, 100), 5, 0));
-box2.transform.position.y -= 125;
+// let box2 = new GameObject();
+// box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(50, 100), 5, 0));
+// box2.transform.position.y -= 125;
+
+// let box3 = new GameObject();
+// box3.addComponent(new Box(box3, new Vector2(0, 0), new Vector2(25, 250), 0, 0));
 
 let gameIsRunning = true;
 let moveSpeed = 250;
@@ -74,6 +79,7 @@ let moveSpeed = 250;
 let distanceVec = new Vector2(0, 0);
 requestAnimationFrame(update);
 function update(){
+
 
     ball1.getComponent(Ball).acceleration.x = 0;
     ball1.getComponent(Ball).acceleration.y = 0;
@@ -140,21 +146,20 @@ function update(){
 
     // ball3.getComponent(Ball).update();
     // Camera.position = new Vector2(player.transform.position.x, player.transform.position.y);
-
+      
     if(gameIsRunning){
+       
         Camera.update();
+
         ball1.getComponent(Ball).display();
         
         CollData.COLLISIONS.length = 0;
 
-        Body.BODIES.forEach((b, index) =>{
+        Body.BODIES.forEach((b) =>{
             b.draw();
             b.update();
         });
-
         Body.BODIES.forEach((b, index) =>{
-            // b.draw();
-            // b.update();
             for(let bodyPair = index + 1; bodyPair < Body.BODIES.length; bodyPair++){
 
                 let bestSat = {
@@ -170,10 +175,9 @@ function update(){
                             ctx.fillText("Collision", 500, 380);
                         }
                     }
-        
                 }
 
-                if(bestSat.pen != null){
+                if(bestSat.pen !== null){
                     CollData.COLLISIONS.push(new CollData(Body.BODIES[index], Body.BODIES[bodyPair], bestSat.axis, bestSat.pen, bestSat.vertex));
                 }
             }

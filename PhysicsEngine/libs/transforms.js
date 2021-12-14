@@ -105,3 +105,11 @@ class Vector2{
         return Vector2.multiply(this, multiplier);
     }
 }
+
+function testCircle(x, y, color="black"){
+    ctx.beginPath();
+    ctx.arc(x - (Camera.position.x - Camera.size.x / 2), -(y - Camera.position.y - Camera.size.y / 2), 10, 0, 2*Math.PI);
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.closePath();
+}

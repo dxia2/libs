@@ -250,6 +250,7 @@ function sat(o1, o2){
         smallestAxis = Vector2.multiply(smallestAxis, -1);
     }
 
+
     return {
         pen: minOverlap,
         axis: smallestAxis,
@@ -371,6 +372,7 @@ class CollData{
     }
 
     collRes(){
+        testCircle(this.cp.x, this.cp.y);
         
         //1. closing velocity
         let collArm1 = Vector2.subtract(this.cp, this.o1.position);
@@ -396,6 +398,7 @@ class CollData{
         let impulseVec = Vector2.multiply(this.normal, impulse);
 
         //3. Changing the velocities
+        console.log(this.o2.position);
         this.o1.velocity = Vector2.add(this.o1.velocity, Vector2.multiply(impulseVec, this.o1.inv_m));
         this.o2.velocity = Vector2.add(this.o2.velocity, Vector2.multiply(impulseVec, -this.o2.inv_m));
 
