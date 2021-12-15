@@ -61,10 +61,11 @@ wall4.name = "wall4";
 // caps2.getComponent(Capsule).angVel = Math.random();
 
 let box1 = new GameObject();
-box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(50, 30), 5, 0));
+box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(50, 50), 5, 0));
 box1.transform.position.x -= 150;
-box1.getComponent(Box).velocity = new Vector2(-50, 0);
+box1.getComponent(Box).velocity = new Vector2(-100, 0);
 box1.name = "box1";
+box1.addComponent(new SpriteRenderer(box1, ctx, pepeImg, 50, 50));
 
 // let box2 = new GameObject();
 // box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(50, 100), 5, 0));
@@ -72,14 +73,13 @@ box1.name = "box1";
 
 // let box3 = new GameObject();
 // box3.addComponent(new Box(box3, new Vector2(0, 0), new Vector2(25, 250), 0, 0));
-
+box1.getComponent(Box).angVel = 0.5;
 let gameIsRunning = true;
 let moveSpeed = 250;
 
 let distanceVec = new Vector2(0, 0);
 requestAnimationFrame(update);
 function update(){
-
 
     ball1.getComponent(Ball).acceleration.x = 0;
     ball1.getComponent(Ball).acceleration.y = 0;
