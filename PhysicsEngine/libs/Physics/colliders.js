@@ -375,14 +375,16 @@ class CollData{
         testCircle(this.cp.x, this.cp.y);
         
         //1. closing velocity
-        let collArm1 = Vector2.subtract(new Vector2(this.cp.x, -this.cp.y), new Vector2(this.o1.position.x, -this.o1.position.y));
+        let collArm1 = Vector2.subtract(new Vector2(this.cp.x, this.cp.y), new Vector2(this.o1.position.x, this.o1.position.y));
+        collArm1 = collArm1.mult(-1);
         let rotVel1 = new Vector2(-this.o1.angVel * collArm1.y, this.o1.angVel * collArm1.x);
         let closVel1 = Vector2.add(this.o1.velocity, rotVel1);
 
-        let collArm2 = Vector2.subtract(new Vector2(this.cp.x, -this.cp.y), new Vector2(this.o2.position.x, -this.o2.position.y));
+        let collArm2 = Vector2.subtract(new Vector2(this.cp.x, this.cp.y), new Vector2(this.o2.position.x, this.o2.position.y));
+        collArm2 = collArm2.mult(-1);
         let rotVel2 = new Vector2(-this.o2.angVel * collArm2.y, this.o2.angVel * collArm2.x);
         let closVel2 = Vector2.add(this.o2.velocity, rotVel2);
-
+        console.log(Vector2.subtract(new Vector2(this.cp.x, this.cp.y), new Vector2(this.o2.position.x, this.o2.position.y)));
         //2. Impulse augmentation
         let impAug1 = Vector2.cross(collArm1, this.normal);
         impAug1 = impAug1 * this.o1.inv_inertia * impAug1;
@@ -396,12 +398,10 @@ class CollData{
 
         let impulse = vsep_diff / (this.o1.inv_m + this.o2.inv_m + impAug1 + impAug2);
         let impulseVec = Vector2.multiply(this.normal, impulse);
-        console.log(collArm2);
         //3. Changing the velocities
-
         this.o1.velocity = Vector2.add(this.o1.velocity, Vector2.multiply(impulseVec, this.o1.inv_m));
         this.o2.velocity = Vector2.add(this.o2.velocity, Vector2.multiply(impulseVec, -this.o2.inv_m));
-
+        
         this.o1.angVel += this.o1.inv_inertia * Vector2.cross(collArm1, impulseVec);
         this.o2.angVel -= this.o2.inv_inertia * Vector2.cross(collArm2, impulseVec);
         
@@ -645,11 +645,11 @@ class Line{
     }
 
     get position(){
+        let midPoint = new Vector2((this.start.x + this.end.x) / 2, (this.start.y + this.end.y) / 2);
         return this.gameObject.transform.position;
     }
     set position(value){
-        // let midPoint = new Vector2((this.localStart.x + this.localEnd.x) / 2, (this.localStart.y + this.localEnd.y) / 2);
-        // this.gameObject.transform.position = Vector2.add(midPoint, value);
+        let midPoint = new Vector2((this.localStart.x + this.localEnd.x) / 2, (this.localStart.y + this.localEnd.y) / 2);
         this.gameObject.transform.position = value;
     }
     constructor(gameObject, start, end){
