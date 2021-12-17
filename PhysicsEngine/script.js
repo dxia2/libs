@@ -62,11 +62,18 @@ wall4.name = "wall4";
 // caps2.getComponent(Capsule).angVel = Math.random();
 
 let box1 = new GameObject();
-box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(50, 50), 1, 0));
-box1.transform.position.x -= 150;
+box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(50, 50), 5, 0));
+box1.transform.position.x -= 100;
 box1.getComponent(Box).velocity = new Vector2(-50, 0);
 box1.name = "box1";
 box1.addComponent(new SpriteRenderer(box1, ctx, pepeImg, 50, 50));
+
+let box2 = new GameObject();
+box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(25, 150), 5, 0));
+box2.transform.position.x -= 200;
+box2.getComponent(Box).velocity = new Vector2(-50, 0);
+
+box2.transform.rotation = 20;
 
 // let box2 = new GameObject();
 // box2.addComponent(new Box(box2, new Vector2(-250, 0), new Vector2(50, 100), 1, 0));
