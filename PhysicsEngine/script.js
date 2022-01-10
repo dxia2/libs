@@ -1,45 +1,36 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-canvas.width = 600;
+canvas.width = 800;
 canvas.height = 400;
 
 let pepeImg = document.getElementById("pepe");
 let circleImg = document.getElementById("circle");
 
-Camera.initialize(canvas, ctx, new Vector2(0, 0), new Vector2(600, 400))
+Camera.initialize(canvas, ctx, new Vector2(0, 0), new Vector2(800, 400))
 
 let ball1 = new GameObject();
 // ball1.addComponent(new SpriteRenderer(ball1, ctx, circleImg, 50, 50));
-ball1.addComponent(new Ball(ball1, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0, 2));
+ball1.addComponent(new Ball(ball1, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0.5, 2));
 ball1.addComponent(new SpriteRenderer(ball1, ctx, circleImg, 50, 50));
 ball1.transform.position = new Vector2(0, 100);
 ball1.getComponent(Ball).velocity.y += 5;
 
-// let ball2 = new GameObject();
-// // ball2.addComponent(new SpriteRenderer(ball2, ctx, circleImg, 50, 50));
-// ball2.addComponent(new Ball(ball2, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0, 2));
-// ball2.transform.position = new Vector2(50, 150);
-// ball2.getComponent(Ball).velocity = new Vector2(Math.random() * 500, Math.random() * 500);
 
-// let ball3 = new GameObject();
-// ball3.transform.position.x += 50
-// // ball3.addComponent(new SpriteRenderer(ball3, ctx, circleImg, 100, 100));
-// ball3.addComponent(new Ball(ball3, new Vector2(0, 0), 50, new Vector2(0, 0), new Vector2(0, 0), 0.6, 10));
 
 let wall1 = new GameObject();
 wall1.addComponent(new Wall(wall1, new Vector2(0, 200), new Vector2(0, -200)));
 wall1.name = "wall1";
-wall1.transform.position.x -= 300;
+wall1.transform.position.x -= 400;
 
 let wall2 = new GameObject();
-wall2.addComponent(new Wall(wall2, new Vector2(300, 200), new Vector2(300, -200)));
+wall2.addComponent(new Wall(wall2, new Vector2(400, 200), new Vector2(400, -200)));
 wall2.name = "wall2";
 
 let wall3 = new GameObject();
-wall3.addComponent(new Wall(wall3, new Vector2(-299, -200), new Vector2(299, -200)));
+wall3.addComponent(new Wall(wall3, new Vector2(-400, -200), new Vector2(400, -200)));
 
 let wall4 = new GameObject();
-wall4.addComponent(new Wall(wall4, new Vector2(-300, 200), new Vector2(300, 200)));
+wall4.addComponent(new Wall(wall4, new Vector2(-400, 200), new Vector2(400, 200)));
 wall4.name = "wall4";
 
 // let wall6 = new GameObject();
@@ -63,14 +54,29 @@ wall4.name = "wall4";
 // caps2.getComponent(Capsule).angVel = Math.random();
 
 let box1 = new GameObject();
-box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(50, 50), 5, 0));
+box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(50, 50), 5, 0.5));
 box1.transform.position.x -= 100;
 box1.getComponent(Box).velocity = new Vector2(-50, 0);
 box1.name = "box1";
 box1.addComponent(new SpriteRenderer(box1, ctx, pepeImg, 50, 50));
 
+// let box3 = new GameObject();
+// box3.addComponent(new Box(box3, new Vector2(0, 0), new Vector2(50, 50), 5, 0.5));
+// box3.transform.position.x -= 100;
+// box3.getComponent(Box).velocity = new Vector2(-50, 0);
+// box3.name = "box3";
+// box3.addComponent(new SpriteRenderer(box3, ctx, pepeImg, 50, 50));
+
+
+// let box4 = new GameObject();
+// box4.addComponent(new Box(box4, new Vector2(0, 0), new Vector2(50, 50), 5, 0.5));
+// box4.transform.position.x -= 100;
+// box4.getComponent(Box).velocity = new Vector2(-50, 0);
+// box4.name = "box4";
+// box4.addComponent(new SpriteRenderer(box4, ctx, pepeImg, 50, 50));
+
 let box2 = new GameObject();
-box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(25, 150), 5, 0));
+box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(25, 150), 5, 0.5));
 box2.transform.position.x -= 200;
 box2.getComponent(Box).velocity = new Vector2(-50, 0);
 box1.addComponent(new SpriteRenderer(box2, ctx, pepeImg, 25, 150));
