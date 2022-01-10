@@ -11,13 +11,14 @@ Camera.initialize(canvas, ctx, new Vector2(0, 0), new Vector2(600, 400))
 let ball1 = new GameObject();
 // ball1.addComponent(new SpriteRenderer(ball1, ctx, circleImg, 50, 50));
 ball1.addComponent(new Ball(ball1, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0, 2));
+ball1.addComponent(new SpriteRenderer(ball1, ctx, circleImg, 50, 50));
 ball1.transform.position = new Vector2(0, 100);
 ball1.getComponent(Ball).velocity.y += 5;
 
-let ball2 = new GameObject();
-// ball2.addComponent(new SpriteRenderer(ball2, ctx, circleImg, 50, 50));
-ball2.addComponent(new Ball(ball2, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0, 2));
-ball2.transform.position = new Vector2(50, 150);
+// let ball2 = new GameObject();
+// // ball2.addComponent(new SpriteRenderer(ball2, ctx, circleImg, 50, 50));
+// ball2.addComponent(new Ball(ball2, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0, 2));
+// ball2.transform.position = new Vector2(50, 150);
 // ball2.getComponent(Ball).velocity = new Vector2(Math.random() * 500, Math.random() * 500);
 
 // let ball3 = new GameObject();
@@ -72,6 +73,7 @@ let box2 = new GameObject();
 box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(25, 150), 5, 0));
 box2.transform.position.x -= 200;
 box2.getComponent(Box).velocity = new Vector2(-50, 0);
+box1.addComponent(new SpriteRenderer(box2, ctx, pepeImg, 25, 150));
 
 box2.transform.rotation = 20;
 
@@ -102,8 +104,6 @@ function update(){
     // }
     // if(keysPressed["d"]){
     //     ball1.getComponent(Ball).acceleration.x = moveSpeed;
-
-
     // }
     // if(keysPressed["w"]){
     //     ball1.getComponent(Ball).acceleration.y = moveSpeed;
@@ -160,50 +160,10 @@ function update(){
     // Camera.position = new Vector2(player.transform.position.x, player.transform.position.y);
       
     if(gameIsRunning){
-       
+        PhysicsManager.updatePhysics();
         Camera.update();
 
-        ball1.getComponent(Ball).display();
-        
-        CollData.COLLISIONS.length = 0;
-
-        Body.BODIES.forEach((b) =>{
-            b.draw();
-            b.update();
-        });
-        Body.BODIES.forEach((b, index) =>{
-            for(let bodyPair = index + 1; bodyPair < Body.BODIES.length; bodyPair++){
-
-                let bestSat = {
-                    pen: null,
-                    axis: null,
-                    vertex: null
-                }
-        
-                for(let i = 0; i < Body.BODIES[index].comp.length; i++){
-                    for(let j = 0; j < Body.BODIES[bodyPair].comp.length; j++){
-                        if(sat(Body.BODIES[index].comp[i], Body.BODIES[bodyPair].comp[j]).pen > bestSat.pen){
-                            bestSat = sat(Body.BODIES[index].comp[i], Body.BODIES[bodyPair].comp[j]);
-                            ctx.fillText("Collision", 500, 380);
-                        }
-                    }
-                }
-
-                if(bestSat.pen !== null){
-                    CollData.COLLISIONS.push(new CollData(Body.BODIES[index], Body.BODIES[bodyPair], bestSat.axis, bestSat.pen, bestSat.vertex));
-                }
-            }
-        });
-
-        CollData.COLLISIONS.forEach((c) => {
-            c.penRes();
-            c.collRes();
-        });
-
-        // let penResolution = Vector2.multiply(bestSat.axis, bestSat.pen / (Body.BODIES[index].inv_m + Body.BODIES[bodyPair].inv_m));
-        // Body.BODIES[index].comp[0].position = Vector2.add(Body.BODIES[index].comp[0].position, Vector2.multiply(penResolution, Body.BODIES[index].inv_m));
-        // Body.BODIES[bodyPair].comp[0].position = Vector2.add(Body.BODIES[bodyPair].comp[0].position, Vector2.multiply(penResolution, -Body.BODIES[bodyPair].inv_m));
-        ctx.fillText("werid rectangle bug where it sticks to the wall", 325, 350);
+       
        
         requestAnimationFrame(update);
     }

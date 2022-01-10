@@ -355,6 +355,47 @@ function rotMx(angle){
     return mx;
 }
 
+class PhysicsManager{
+
+    static updatePhysics(){
+        CollData.COLLISIONS.length = 0;
+
+        Body.BODIES.forEach((b) =>{
+            b.draw();
+            b.update();
+        });
+        Body.BODIES.forEach((b, index) =>{
+            for(let bodyPair = index + 1; bodyPair < Body.BODIES.length; bodyPair++){
+    
+                let bestSat = {
+                    pen: null,
+                    axis: null,
+                    vertex: null
+                }
+        
+                for(let i = 0; i < Body.BODIES[index].comp.length; i++){
+                    for(let j = 0; j < Body.BODIES[bodyPair].comp.length; j++){
+                        if(sat(Body.BODIES[index].comp[i], Body.BODIES[bodyPair].comp[j]).pen > bestSat.pen){
+                            bestSat = sat(Body.BODIES[index].comp[i], Body.BODIES[bodyPair].comp[j]);
+                            ctx.fillText("Collision", 500, 380);
+                        }
+                    }
+                }
+    
+                if(bestSat.pen !== null){
+                    CollData.COLLISIONS.push(new CollData(Body.BODIES[index], Body.BODIES[bodyPair], bestSat.axis, bestSat.pen, bestSat.vertex));
+                }
+            }
+        });
+    
+        CollData.COLLISIONS.forEach((c) => {
+            c.penRes();
+            c.collRes();
+        });
+    }
+    
+}
+
 class CollData{
     static COLLISIONS = [];
     constructor(o1, o2, normal, pen, cp){
@@ -471,7 +512,9 @@ class Body{
         }
     }
 
+    gravityModifier = 1;
 
+    static defaultGravity = -9.81;
 
     static BODIES = [];
     constructor(gameObject){
@@ -496,7 +539,7 @@ class Body{
     }
 
     update(){
-
+        this.velocity.y += Body.defaultGravity * this.gravityModifier;
     }
 }
 
@@ -511,6 +554,7 @@ class Ball extends Body{
     }
 
     update(){
+        super.update();
         this.updateVelocity();
         this.updateComponentPos();
     }
@@ -587,6 +631,7 @@ class Capsule extends Body{
     }
 
     update(){
+        super.update();
         this.updateVelocity();
         this.updatePosition();
         this.comp[0].update();
@@ -635,6 +680,7 @@ class Box extends Body{
     }
 
     update(){
+        super.update();
         this.updateVelocity();
         this.updatePosition();
         this.comp[0].update();
