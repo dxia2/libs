@@ -53,12 +53,12 @@ wall4.name = "wall4";
 // caps2.getComponent(Capsule).velocity = new Vector2(Math.random() * 500, Math.random() * 500);
 // caps2.getComponent(Capsule).angVel = Math.random();
 
-let box1 = new GameObject();
-box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(50, 50), 5, 0.5));
-box1.transform.position.x -= 100;
-box1.getComponent(Box).velocity = new Vector2(-50, 0);
-box1.name = "box1";
-box1.addComponent(new SpriteRenderer(box1, ctx, pepeImg, 50, 50));
+// let box1 = new GameObject();
+// box1.addComponent(new Box(box1, new Vector2(0, 0), new Vector2(50, 50), 5, 0.5));
+// box1.transform.position.x -= 100;
+// box1.getComponent(Box).velocity = new Vector2(-50, 0);
+// box1.name = "box1";
+// box1.addComponent(new SpriteRenderer(box1, ctx, pepeImg, 50, 50));
 
 // let box3 = new GameObject();
 // box3.addComponent(new Box(box3, new Vector2(0, 0), new Vector2(50, 50), 5, 0.5));
@@ -76,10 +76,9 @@ box1.addComponent(new SpriteRenderer(box1, ctx, pepeImg, 50, 50));
 // box4.addComponent(new SpriteRenderer(box4, ctx, pepeImg, 50, 50));
 
 let box2 = new GameObject();
-box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(25, 150), 5, 0.5));
+box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(25, 150), 5, 0));
 box2.transform.position.x -= 200;
-box2.getComponent(Box).velocity = new Vector2(-50, 0);
-box1.addComponent(new SpriteRenderer(box2, ctx, pepeImg, 25, 150));
+box2.addComponent(new SpriteRenderer(box2, ctx, pepeImg, 25, 150));
 
 box2.transform.rotation = 20;
 
@@ -103,21 +102,6 @@ function update(){
 
     ball1.getComponent(Ball).acceleration.x = 0;
     ball1.getComponent(Ball).acceleration.y = 0;
-
-    // Key control WASD
-    // if(keysPressed["a"]){
-    //     ball1.getComponent(Ball).acceleration.x = -moveSpeed;
-    // }
-    // if(keysPressed["d"]){
-    //     ball1.getComponent(Ball).acceleration.x = moveSpeed;
-    // }
-    // if(keysPressed["w"]){
-    //     ball1.getComponent(Ball).acceleration.y = moveSpeed;
-    // }
-    // if(keysPressed["s"]){
-    //     ball1.getComponent(Ball).acceleration.y = -moveSpeed;
-    // }
-    ball1.getComponent(Ball).acceleration = Vector2.zero();
     if(keysPressed["a"]){
         ball1.getComponent(Ball).acceleration.x = -moveSpeed;
     }
@@ -130,12 +114,25 @@ function update(){
     if(keysPressed["s"]){
         ball1.getComponent(Ball).acceleration.y = -moveSpeed;
     }
-    if(keysPressed["q"]){
-        box1.getComponent(Box).angVel -= 0.05;
-    }
-    if(keysPressed["e"]){
-        box1.getComponent(Box).angVel += 0.05;
-    }
+    // ball1.getComponent(Ball).acceleration = Vector2.zero();
+    // if(keysPressed["a"]){
+    //     ball1.getComponent(Ball).acceleration.x = -moveSpeed;
+    // }
+    // if(keysPressed["d"]){
+    //     ball1.getComponent(Ball).acceleration.x = moveSpeed;
+    // }
+    // if(keysPressed["w"]){
+    //     ball1.getComponent(Ball).acceleration.y = moveSpeed;
+    // }
+    // if(keysPressed["s"]){
+    //     ball1.getComponent(Ball).acceleration.y = -moveSpeed;
+    // }
+    // if(keysPressed["q"]){
+    //     box1.getComponent(Box).angVel -= 0.05;
+    // }
+    // if(keysPressed["e"]){
+    //     box1.getComponent(Box).angVel += 0.05;
+    // }
     // // Key control Arrow keys
     // caps1.getComponent(Capsule).acceleration = Vector2.zero();
 
@@ -156,8 +153,8 @@ function update(){
 
     // console.log(caps1.getComponent(Capsule).position);
 
-    ball1.getComponent(Ball).acceleration = ball1.getComponent(Ball).acceleration.unit();
-    ball1.getComponent(Ball).acceleration = Vector2.multiply(ball1.getComponent(Ball).acceleration, moveSpeed);
+    // ball1.getComponent(Ball).acceleration = ball1.getComponent(Ball).acceleration.unit();
+    // ball1.getComponent(Ball).acceleration = Vector2.multiply(ball1.getComponent(Ball).acceleration, moveSpeed);
     // ball1.getComponent(Ball).update();
 
     // ball2.getComponent(Ball).update();
