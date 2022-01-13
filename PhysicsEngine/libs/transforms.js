@@ -70,6 +70,10 @@ class Vector2{
         return v1.x*v2.y - v1.y*v2.x;
     }
 
+    static abs(vector2){
+        return new Vector2(Math.abs(vector2.x), Math.abs(vector2.y));
+    }
+
     static drawVec(vector1, vector2, color){
         ctx.beginPath();
         ctx.moveTo(vector1.x - (Camera.position.x - Camera.size.x / 2), -(vector1.y - Camera.position.y - Camera.size.y / 2));

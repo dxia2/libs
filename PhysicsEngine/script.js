@@ -10,11 +10,11 @@ Camera.initialize(canvas, ctx, new Vector2(0, 0), new Vector2(800, 400))
 
 let ball1 = new GameObject();
 // ball1.addComponent(new SpriteRenderer(ball1, ctx, circleImg, 50, 50));
-ball1.addComponent(new Ball(ball1, new Vector2(0, 0), 25, new Vector2(0, 0), new Vector2(0, 0), 0.5, 2));
-ball1.addComponent(new SpriteRenderer(ball1, ctx, circleImg, 50, 50));
+ball1.addComponent(new Box(ball1, new Vector2(0, 0), new Vector2(50, 50), 5, 0));
+ball1.addComponent(new SpriteRenderer(ball1, ctx, pepeImg, 50, 50));
 ball1.transform.position = new Vector2(0, 100);
-ball1.getComponent(Ball).velocity.y += 5;
 
+ball1.name = "ball1";
 
 
 let wall1 = new GameObject();
@@ -77,10 +77,12 @@ wall4.name = "wall4";
 
 let box2 = new GameObject();
 box2.addComponent(new Box(box2, new Vector2(0, 0), new Vector2(25, 150), 5, 0));
-box2.transform.position.x -= 200;
+box2.transform.position.x -= 150;
+box2.transform.position.y += 50;
 box2.addComponent(new SpriteRenderer(box2, ctx, pepeImg, 25, 150));
-
-box2.transform.rotation = 20;
+box2.name = "box2";
+box2.getComponent(Box).mass = 0.1;
+console.log(box2.getComponent(Box).inv_m);
 
 // let box2 = new GameObject();
 // box2.addComponent(new Box(box2, new Vector2(-250, 0), new Vector2(50, 100), 1, 0));
@@ -93,26 +95,30 @@ box2.transform.rotation = 20;
 // box3.addComponent(new Box(box3, new Vector2(0, 0), new Vector2(25, 250), 0, 0));
 
 let gameIsRunning = true;
-let moveSpeed = 250;
+let moveSpeed = 0.1;
 
 let distanceVec = new Vector2(0, 0);
 requestAnimationFrame(update);
 function update(){
+    if(keysPressed["e"]){
+        let newBox = new GameObject();
+        newBox.addComponent(new SpriteRenderer(newBox, ctx, pepeImg, 100, 50));
+        newBox.addComponent(new Box(newBox, new Vector2(0, 0), new Vector2(100, 50), 1, 0));
+    }
 
-
-    ball1.getComponent(Ball).acceleration.x = 0;
-    ball1.getComponent(Ball).acceleration.y = 0;
+    ball1.getComponent(Box).acceleration.x = 0;
+    ball1.getComponent(Box).acceleration.y = 0;
     if(keysPressed["a"]){
-        ball1.getComponent(Ball).acceleration.x = -moveSpeed;
+        ball1.getComponent(Box).acceleration.x = -moveSpeed;
     }
     if(keysPressed["d"]){
-        ball1.getComponent(Ball).acceleration.x = moveSpeed;
+        ball1.getComponent(Box).acceleration.x = moveSpeed;
     }
     if(keysPressed["w"]){
-        ball1.getComponent(Ball).acceleration.y = moveSpeed;
+        ball1.getComponent(Box).acceleration.y = moveSpeed;
     }
     if(keysPressed["s"]){
-        ball1.getComponent(Ball).acceleration.y = -moveSpeed;
+        ball1.getComponent(Box).acceleration.y = -moveSpeed;
     }
     // ball1.getComponent(Ball).acceleration = Vector2.zero();
     // if(keysPressed["a"]){
@@ -166,7 +172,8 @@ function update(){
         PhysicsManager.updatePhysics();
         Camera.update();
 
-       
+        ball1.getComponent(Box).draw();
+        box2.getComponent(Box).draw();
        
         requestAnimationFrame(update);
     }

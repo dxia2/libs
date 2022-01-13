@@ -413,51 +413,19 @@ class CollData{
     }
 
     collRes(){
-
-        // let collArm1 = this.cp.subtr(this.o1.comp[0].position);
-        // let rotVel1 = new Vector2(-this.o1.angVel * collArm1.y, this.o1.angVel * collArm1.x);
-        // let closVel1 = this.o1.velocity.add(rotVel1);
-
-
-        // let collArm2 = this.cp.subtr(this.o2.comp[0].position);
-        // let rotVel2= new Vector2(-this.o2.angVel * collArm2.y, this.o2.angVel * collArm2.x);
-        // let closVel2 = this.o2.velocity.add(rotVel2);
-  
-
-        // //2. Impulse augmentation
-        // let impAug1 = Vector2.cross(collArm1, this.normal);
-        // impAug1 = impAug1 * this.o1.inv_inertia * impAug1;
-        // let impAug2 = Vector2.cross(collArm2, this.normal);
-        // impAug2 = impAug2 * this.o2.inv_inertia * impAug2;
-
-
-        // let relVel = closVel1.subtr(closVel2);
-        // let sepVel = Vector2.dot(relVel, this.normal);
-        // let new_sepVel = -sepVel * Math.min(this.o1.elasticity, this.o2.elasticity);;
-        // let vsep_diff = new_sepVel - sepVel;
-
-        // let impulse = vsep_diff / (this.o1.inv_m + this.o2.inv_m + impAug1 + impAug2);
-        // let impulseVec = this.normal.mult(impulse);
-
-        // //3. Changing the velocities
-        // console.log(impulseVec);
-
-        // this.o1.velocity = this.o1.velocity.add(impulseVec.mult(this.o1.inv_m));
-        // this.o2.velocity = this.o2.velocity.add(impulseVec.mult(-this.o2.inv_m));
-
-        // this.o1.angVel += this.o1.inv_inertia * Vector2.cross(collArm1, impulseVec);
-        // this.o1.angVel *= -1;
-
-        // this.o2.angVel -= this.o2.inv_inertia * Vector2.cross(collArm2, impulseVec); 
-        // this.o2.angVel *= -1;
-
         //1. Closing velocity
-        let collArm1 = this.cp.subtr(this.o1.comp[0].position);
-        let rotVel1 = new Vector2(this.o1.angVel * collArm1.y, this.o1.angVel * collArm1.x);
+
+        let collArm1 = this.cp.subtr(this.o1.position);
+        collArm1 = collArm1.mult(-1);
+        let rotVel1 = new Vector2(-this.o1.angVel * collArm1.y, this.o1.angVel * collArm1.x);
         let closVel1 = this.o1.velocity.add(rotVel1);
-        let collArm2 = this.cp.subtr(this.o2.comp[0].position);
-        let rotVel2= new Vector2(this.o2.angVel * collArm2.y, this.o2.angVel * collArm2.x);
+
+        let collArm2 = this.cp.subtr(this.o2.position);
+        collArm2 = collArm2.mult(-1);
+        let rotVel2= new Vector2(-this.o2.angVel * collArm2.y, this.o2.angVel * collArm2.x);
         let closVel2 = this.o2.velocity.add(rotVel2);
+
+
 
         //2. Impulse augmentation
         let impAug1 = Vector2.cross(collArm1, this.normal);
@@ -467,20 +435,22 @@ class CollData{
 
         let relVel = closVel1.subtr(closVel2);
         let sepVel = Vector2.dot(relVel, this.normal);
-        let new_sepVel = -sepVel * Math.min(this.o1.elasticity, this.o2.elasticity);
+        console.log(sepVel)
+        let new_sepVel = sepVel * -Math.min(this.o1.elasticity, this.o2.elasticity);
         let vsep_diff = new_sepVel - sepVel;
+        console.log(vsep_diff);
 
         let impulse = vsep_diff / (this.o1.inv_m + this.o2.inv_m + impAug1 + impAug2);
         let impulseVec = this.normal.mult(impulse);
 
+
         //3. Changing the velocities
         this.o1.velocity = this.o1.velocity.add(impulseVec.mult(this.o1.inv_m));
         this.o2.velocity = this.o2.velocity.add(impulseVec.mult(-this.o2.inv_m));
-
+        console.log(this.o2.velocity);
         this.o1.angVel += this.o1.inv_inertia * Vector2.cross(collArm1, impulseVec);
-        this.o2.angVel -= this.o2.inv_inertia * Vector2.cross(collArm2, impulseVec); 
-        this.o1.angVel *= -1;
-        this.o2.angVel *= -1;
+        this.o2.angVel -= this.o2.inv_inertia * Vector2.cross(collArm2, impulseVec);
+        console.log("------------------------")
     }
 }
 
@@ -508,11 +478,10 @@ class Body{
             return 1 / this.inertia;
         }
     }
+    angDrag = 0.01;
+    gravityModifier = 0;
 
-    angDrag = 0.2;
-    gravityModifier = 1;
-
-    static defaultGravity = -9.81;
+    static defaultGravity = -0.1;
     static velocityThreshold = 100;
 
     static BODIES = [];
@@ -520,7 +489,7 @@ class Body{
         this.gameObject = gameObject;
         this.comp = [];
         this.mass = 1;
-        this.elasticity = 0;
+        this.elasticity = 1;
         this.drag = 0.5;
 
         this.velocity = new Vector2(0, 0);
@@ -538,7 +507,7 @@ class Body{
     }
 
     update(){
-        // this.velocity.y += Body.defaultGravity * this.gravityModifier * deltaTime * 100;
+        this.velocity.y += Body.defaultGravity * this.gravityModifier;
     }
 }
 
@@ -559,15 +528,15 @@ class Ball extends Body{
     }
 
     updateVelocity(){
-        this.angVel *= 1-this.angDrag * deltaTime;
+        this.angVel *= 1-this.angDrag;
 
-        this.velocity.x *= 1-this.drag * deltaTime;
-        this.velocity.y *= 1-this.drag * deltaTime;
-        this.velocity.x += this.acceleration.x * deltaTime;
-        this.velocity.y += this.acceleration.y * deltaTime;
+        this.velocity.x *= 1-this.drag;
+        this.velocity.y *= 1-this.drag;
+        this.velocity.x += this.acceleration.x;
+        this.velocity.y += this.acceleration.y;
     }
     updateComponentPos(){
-        this.comp[0].position = Vector2.add(this.comp[0].position, Vector2.multiply(this.velocity, deltaTime));
+        this.comp[0].position = Vector2.add(this.comp[0].position, this.velocity);
     }
     display(){
         Vector2.drawVec(this.position, Vector2.add(this.position, this.velocity), "green");
@@ -641,16 +610,16 @@ class Capsule extends Body{
     }
 
     updateVelocity(){
-        this.angVel *= 1-this.angDrag * deltaTime;
-        this.velocity.x *= 1-this.drag * deltaTime;
-        this.velocity.y *= 1-this.drag * deltaTime;
-        this.velocity.x += this.acceleration.x * deltaTime;
-        this.velocity.y += this.acceleration.y * deltaTime;
-        this.comp[0].angle += this.angVel * deltaTime;
+        this.angVel *= 1-this.angDrag;
+        this.velocity.x *= 1-this.drag;
+        this.velocity.y *= 1-this.drag;
+        this.velocity.x += this.acceleration.x;
+        this.velocity.y += this.acceleration.y;
+        this.comp[0].angle += this.angVel;
     }
 
     updatePosition(){
-        this.comp[0].position = Vector2.add(this.comp[0].position, Vector2.multiply(this.velocity, deltaTime));
+        this.comp[0].position = Vector2.add(this.comp[0].position, this.velocity);
         let start = Vector2.multiply(this.comp[0].dir, this.length / 2);
         let end = Vector2.multiply(this.comp[0].dir, -this.length / 2);
         this.comp[1].offset = start;
@@ -691,17 +660,17 @@ class Box extends Body{
     }
 
     updateVelocity(){
-        this.angVel *= 1-this.angDrag * deltaTime;
+        this.angVel *= 1-this.angDrag;
 
-        this.velocity.x *= 1-this.drag * deltaTime;
-        this.velocity.y *= 1-this.drag * deltaTime;
-        this.velocity.x += this.acceleration.x * deltaTime;
-        this.velocity.y += this.acceleration.y * deltaTime;
-        this.comp[0].angle += this.angVel * deltaTime;
+        this.velocity.x *= 1-this.drag;
+        this.velocity.y *= 1-this.drag;
+        this.velocity.x += this.acceleration.x;
+        this.velocity.y += this.acceleration.y;
+        this.comp[0].angle += this.angVel;
     }
 
     updatePosition(){
-        this.comp[0].position = Vector2.add(this.comp[0].position, Vector2.multiply(this.velocity, deltaTime));
+        this.comp[0].position = Vector2.add(this.comp[0].position, this.velocity);
     }
 }
 
