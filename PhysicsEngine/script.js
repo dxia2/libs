@@ -8,17 +8,27 @@ let gameIsRunning = true;
 let pepeImg = document.getElementById("pepe");
 let circleImg = document.getElementById("circle");
 
-// Camera.initialize(canvas, ctx, new Vector2(0, 0), new Vector2(800, 400))
+Camera.initialize(canvas, ctx, new Vector2(0, 0), new Vector2(600, 300))
 
 let ball1 = new GameObject();
-ball1.transform.position = new Vector2(100, 100);
-ball1.addComponent(new Capsule(ball1, -100, 100, -50, 100, 25, 1));
 
-ball1.getComponent(Capsule).player = true;
-ball1.getComponent(Capsule).vel.x += 1;
+ball1.addComponent(new Ball(ball1, 0, 0, 25, 1));
 
+ball1.getComponent(Ball).player = true;
+ball1.getComponent(Ball).vel.x += 1;
+
+let box1 = new GameObject();
+box1.addComponent(new Box(box1, -50, 0, 50, 0, 25, 1));
+
+let tri1 = new GameObject();
+tri1.addComponent(new TriangleBody(tri1, 0, 0, 75, 1));
 function mainLoop(timestamp) {
-    console.log(ball1.getComponent(Capsule).pos);
+    if(keysPressed["e"]){
+        let gameobject = new GameObject();
+        gameobject.addComponent(new Ball(gameobject, 0, 0, 25, 1));
+    }
+
+
     ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
     // userInput();
     COLLISIONS.length = 0;
@@ -29,7 +39,7 @@ function mainLoop(timestamp) {
         if(b.player){
             b.keyControl();
         };
-        b.reposition();
+        b.update();
     })
     
     BODIES.forEach((b, index) => {

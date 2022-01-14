@@ -856,14 +856,14 @@ class Vector2{
         }
     }
 
-    drawVec(start_x, start_y, n, color){
-        ctx.beginPath();
-        ctx.moveTo(start_x, start_y);
-        ctx.lineTo(start_x + this.x * n, start_y + this.y * n);
-        ctx.strokeStyle = color;
-        ctx.stroke();
-        ctx.closePath();
-    }
+    // drawVec(start_x, start_y, n, color){
+    //     ctx.beginPath();
+    //     ctx.moveTo(start_x, start_y);
+    //     ctx.lineTo(start_x + this.x * n, start_y + this.y * n);
+    //     ctx.strokeStyle = color;
+    //     ctx.stroke();
+    //     ctx.closePath();
+    // }
     
     static dot(v1, v2){
         return v1.x*v2.x + v1.y*v2.y;
@@ -923,8 +923,10 @@ class Line{
 
     draw(){
         ctx.beginPath();
-        ctx.moveTo(this.vertex[0].x, this.vertex[0].y);
-        ctx.lineTo(this.vertex[1].x, this.vertex[1].y);
+        let vert1 = Camera.posRelatedToCam(this.vertex[0]);
+        let vert2 = Camera.posRelatedToCam(this.vertex[1]);
+        ctx.moveTo(vert1.x, vert1.y);
+        ctx.lineTo(vert2.x, vert2.y);
         ctx.strokeStyle = "black";
         ctx.stroke();
         ctx.closePath();
@@ -938,6 +940,12 @@ class Circle{
     set pos(value){
         this.gameObject.transform.position = value.subtr(this.offset);
     }
+    get angle(){
+        return ExtendedMath.degToRad(this.gameObject.transform.rotation);
+    }
+    set angle(value){
+        this.gameObject.transform.rotation = ExtendedMath.radToDeg(value);
+    }
     constructor(gameObject, x, y, r){
         this.gameObject = gameObject;
         this.offset = new Vector2(x, y);
@@ -947,7 +955,8 @@ class Circle{
 
     draw(){
         ctx.beginPath();
-        ctx.arc(this.pos.x, this.pos.y, this.r, 0, 2*Math.PI);
+        let p = Camera.posRelatedToCam(this.pos);
+        ctx.arc(p.x, p.y, this.r, 0, 2*Math.PI);
         ctx.stroke();
         //ctx.fillStyle = "red";
         //ctx.fill();
@@ -962,6 +971,12 @@ class Rectangle{
     set pos(value){
         this.gameObject.transform.position = value;
     }
+    get angle(){
+        return ExtendedMath.degToRad(this.gameObject.transform.rotation);
+    }
+    set angle(value){
+        this.gameObject.transform.rotation = ExtendedMath.radToDeg(value);
+    }
     constructor(gameObject, x1, y1, x2, y2, w){
         this.gameObject = gameObject;
         this.vertex = [];
@@ -974,17 +989,21 @@ class Rectangle{
         this.vertex[2] = this.vertex[1].add(this.dir.normal().mult(this.width));
         this.vertex[3] = this.vertex[2].add(this.dir.normal().mult(-this.length));
         this.pos = this.vertex[0].add(this.dir.mult(this.length/2)).add(this.dir.normal().mult(this.width/2));
-        this.angle = 0;
+        // this.angle = 0;
         this.rotMat = new Matrix(2,2);
     }
 
     draw(){
         ctx.beginPath();
-        ctx.moveTo(this.vertex[0].x, this.vertex[0].y);
-        ctx.lineTo(this.vertex[1].x, this.vertex[1].y);
-        ctx.lineTo(this.vertex[2].x, this.vertex[2].y);
-        ctx.lineTo(this.vertex[3].x, this.vertex[3].y);
-        ctx.lineTo(this.vertex[0].x, this.vertex[0].y);
+        let vert1 = Camera.posRelatedToCam(this.vertex[0]);
+        let vert2 = Camera.posRelatedToCam(this.vertex[1]);
+        let vert3 = Camera.posRelatedToCam(this.vertex[2]);
+        let vert4 = Camera.posRelatedToCam(this.vertex[3]);
+        ctx.moveTo(vert1.x, vert1.y);
+        ctx.lineTo(vert2.x, vert2.y);
+        ctx.lineTo(vert3.x, vert3.y);
+        ctx.lineTo(vert4.x, vert4.y);
+        ctx.lineTo(vert1.x, vert1.y);
         ctx.strokeStyle = "black";
         ctx.stroke();
         ctx.closePath();
@@ -1007,6 +1026,12 @@ class Triangle{
     set pos(value){
         this.gameObject.transform.position = value;
     }
+    get angle(){
+        return ExtendedMath.degToRad(this.gameObject.transform.rotation);
+    }
+    set angle(value){
+        this.gameObject.transform.rotation = ExtendedMath.radToDeg(value);
+    }
     constructor(gameObject, x1, y1, x2, y2, x3, y3){
         this.gameObject = gameObject;
         this.vertex = [];
@@ -1020,16 +1045,19 @@ class Triangle{
         this.refDiam[0] = this.vertex[0].subtr(this.pos);
         this.refDiam[1] = this.vertex[1].subtr(this.pos);
         this.refDiam[2] = this.vertex[2].subtr(this.pos);
-        this.angle = 0;
+        // this.angle = 0;
         this.rotMat = new Matrix(2,2);
     }
 
     draw(){
         ctx.beginPath();
-        ctx.moveTo(this.vertex[0].x, this.vertex[0].y);
-        ctx.lineTo(this.vertex[1].x, this.vertex[1].y);
-        ctx.lineTo(this.vertex[2].x, this.vertex[2].y);
-        ctx.lineTo(this.vertex[0].x, this.vertex[0].y);
+        let vert1 = Camera.posRelatedToCam(this.vertex[0]);
+        let vert2 = Camera.posRelatedToCam(this.vertex[1]);
+        let vert3 = Camera.posRelatedToCam(this.vertex[2]);
+        ctx.moveTo(vert1.x, vert1.y);
+        ctx.lineTo(vert2.x, vert2.y);
+        ctx.lineTo(vert3.x, vert3.y);
+        ctx.lineTo(vert1.x, vert1.y);
         ctx.strokeStyle = "black";
         ctx.stroke();
         ctx.closePath();
@@ -1053,6 +1081,8 @@ class Body{
     set pos(value){
         this.comp[0].pos = value;
     }
+
+    static gravity = -9.81;
     constructor(gameObject, x, y){
         this.gameObject = gameObject;
         this.comp = [];
@@ -1060,7 +1090,10 @@ class Body{
         this.inv_m = 0;
         this.inertia = 0;
         this.inv_inertia = 0;
-        this.elasticity = 1;
+        this.elasticity = 0.4;
+        this.gravityModifier = 1;
+        this.awake = true;
+        this.restThreshold = 0.01;
 
         this.vel = new Vector2(0, 0);
         this.acc = new Vector2(0, 0);
@@ -1072,12 +1105,30 @@ class Body{
 
     draw(){}
     display(){}
-    reposition(){}
+    update(){
+        // if(this.awake === true){
+        //     if(this.vel.mag() < this.restThreshold){
+        //         this.vel.x = 0;
+        //         this.vel.y = 0;
+        //         awake = false;
+        //     }else{
+        //         // finish resting objects
+        //     }
+        // }
+    }
     keyControl(){}
+
+    addForce(force){
+        if(force.mag() > this.restThreshold){
+            this.awake = true;
+            //apply force as normal
+            this.vel = this.vel.add(force);
+        }
+    }
 }
 
 class Ball extends Body{
-
+    angVel = 0;
     constructor(gameObject, x, y, r, m){
         super();
         this.gameObject = gameObject;
@@ -1102,10 +1153,14 @@ class Ball extends Body{
         ctx.fillText("e = "+this.elasticity, this.pos.x-10, this.pos.y+5);
     }
 
-    reposition(){
+    update(){
+        // divide by 60 to make it fall -9.81 per second instead of per frame
+        this.vel.y += (Body.gravity / 60) * this.gravityModifier;
         this.acc = this.acc.unit().mult(this.acceleration);
         this.vel = this.vel.add(this.acc);
         this.vel = this.vel.mult(1-friction);
+        this.angVel *= 1;
+        this.comp[0].angle += this.angVel;
         this.comp[0].pos = this.comp[0].pos.add(this.vel);
     }
 
@@ -1113,13 +1168,13 @@ class Ball extends Body{
         if(keysPressed["a"]){
             this.acc.x = -this.acceleration;
         }
-        if(keysPressed["w"]){
+        if(keysPressed["s"]){
             this.acc.y = -this.acceleration;
         }
         if(keysPressed["d"]){
             this.acc.x = this.acceleration;
         }
-        if(keysPressed["s"]){
+        if(keysPressed["w"]){
             this.acc.y = this.acceleration;
         }
         if(!keysPressed["a"] && !keysPressed["d"]){
@@ -1187,7 +1242,9 @@ class Capsule extends Body{
         }
     }
 
-    reposition(){
+    update(){
+                // divide by 60 to make it fall -9.81 per second instead of per frame
+                this.vel.y += (Body.gravity / 60) * this.gravityModifier;
         this.acc = this.acc.unit().mult(this.acceleration);
         this.vel = this.vel.add(this.acc);
         this.vel = this.vel.mult(1-friction);
@@ -1195,15 +1252,16 @@ class Capsule extends Body{
         this.angVel *= 1;
         this.comp[0].angle += this.angVel;
         this.comp[0].getVertices();
-        this.comp[1].offset = this.comp[0].pos.add(this.comp[0].dir.mult(-this.comp[0].length/2));
-        this.comp[2].offset = this.comp[0].pos.add(this.comp[0].dir.mult(this.comp[0].length/2));
+        this.comp[1].offset = (this.comp[0].dir.mult(-this.comp[0].length/2));
+        this.comp[2].offset = (this.comp[0].dir.mult(this.comp[0].length/2));
     }
 }
 
 class Box extends Body{
     constructor(gameObject, x1, y1, x2, y2, w, m){
         super();
-        this.comp = [new Rectangle(x1, y1, x2, y2, w)];
+        this.gameObject = gameObject;
+        this.comp = [new Rectangle(gameObject, x1, y1, x2, y2, w)];
         this.m = m;
         if (this.m === 0){
             this.inv_m = 0;
@@ -1240,7 +1298,9 @@ class Box extends Body{
         }
     }
 
-    reposition(){
+    update(){
+                // divide by 60 to make it fall -9.81 per second instead of per frame
+                this.vel.y += (Body.gravity / 60) * this.gravityModifier;
         this.acc = this.acc.unit().mult(this.acceleration);
         this.vel = this.vel.add(this.acc);
         this.vel = this.vel.mult(1-friction);
@@ -1251,9 +1311,10 @@ class Box extends Body{
     }
 }
 
-class Star extends Body{
+class TriangleBody extends Body{
     constructor(gameObject, x1, y1, r, m){
         super();
+        this.gameObject = gameObject;
         this.comp = [];
         this.r = r;
         let center = new Vector2(x1, y1);
@@ -1261,11 +1322,11 @@ class Star extends Body{
         let p1 = center.add(upDir.mult(r));
         let p2 = center.add(upDir.mult(-r/2)).add(upDir.normal().mult(-r*Math.sqrt(3)/2));
         let p3 = center.add(upDir.mult(-r/2)).add(upDir.normal().mult(r*Math.sqrt(3)/2));
-        this.comp.push(new Triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y));
-        p1 = center.add(upDir.mult(-r));
-        p2 = center.add(upDir.mult(r/2)).add(upDir.normal().mult(-r*Math.sqrt(3)/2));
-        p3 = center.add(upDir.mult(r/2)).add(upDir.normal().mult(r*Math.sqrt(3)/2));
-        this.comp.push(new Triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y));
+        this.comp.push(new Triangle(gameObject, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y));
+        // p1 = center.add(upDir.mult(-r));
+        // p2 = center.add(upDir.mult(r/2)).add(upDir.normal().mult(-r*Math.sqrt(3)/2));
+        // p3 = center.add(upDir.mult(r/2)).add(upDir.normal().mult(r*Math.sqrt(3)/2));
+        // this.comp.push(new Triangle(gameObject, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y));
         
         this.m = m;
         if (this.m === 0){
@@ -1283,28 +1344,31 @@ class Star extends Body{
 
     draw(){
         this.comp[0].draw();
-        this.comp[1].draw();
+        // this.comp[1].draw();
+
     }
 
     keyControl(){
-        if(UP){
-            this.acc = this.comp[0].dir.mult(-this.acceleration);
+        if(keysPressed["w"]){
+            this.acc = this.comp[0].dir.mult(-this.acceleration);;
         }
-        if(DOWN){
-            this.acc = this.comp[0].dir.mult(this.acceleration);
+        if(keysPressed["s"]){
+            this.acc = this.comp[0].dir.mult(this.acceleration);;
         }
         if(keysPressed["a"]){
             this.angVel = -0.1;
         }
-        if(RIGHT){
+        if(keysPressed["d"]){
             this.angVel = 0.1;
         }
-        if(!UP && !DOWN){
-            this.acc.set(0,0);
+        if(!keysPressed["w"] && !keysPressed["s"]){
+            this.acc = new Vector2(0, 0);
         }
     }
 
-    reposition(){
+    update(){
+                // divide by 60 to make it fall -9.81 per second instead of per frame
+                this.vel.y += (Body.gravity / 60) * this.gravityModifier;
         this.acc = this.acc.unit().mult(this.acceleration);
         this.vel = this.vel.add(this.acc);
         this.vel = this.vel.mult(1-friction);
@@ -1312,9 +1376,9 @@ class Star extends Body{
         this.comp[0].pos = this.comp[0].pos.add(this.vel);
         this.comp[0].angle += this.angVel;
         this.comp[0].getVertices();
-        this.comp[1].pos = this.comp[0].pos;
-        this.comp[1].angle += this.angVel;
-        this.comp[1].getVertices();
+        // this.comp[1].pos = this.comp[0].pos;
+        // this.comp[1].angle += this.angVel;
+        // this.comp[1].getVertices();
     }
 }
 
@@ -1609,10 +1673,10 @@ function setBallVerticesAlongAxis(obj, axis){
 //Prevents objects to float away from the canvas
 function putWallsAroundCanvas(){
     let wallsGameobject = new GameObject();
-    let edge1 = new Wall(wallsGameobject, 0, 0, canvas.clientWidth, 0);
-    let edge2 = new Wall(wallsGameobject, canvas.clientWidth, 0, canvas.clientWidth, canvas.clientHeight);
-    let edge3 = new Wall(wallsGameobject, canvas.clientWidth, canvas.clientHeight, 0, canvas.clientHeight);
-    let edge4 = new Wall(wallsGameobject, 0, canvas.clientHeight, 0, 0);
+    let edge1 = new Wall(wallsGameobject, -canvas.clientWidth / 2, -canvas.clientHeight / 2, canvas.clientWidth / 2, -canvas.clientHeight / 2);
+    let edge2 = new Wall(wallsGameobject, canvas.clientWidth / 2, -canvas.clientHeight / 2, canvas.clientWidth / 2, canvas.clientHeight / 2);
+    let edge3 = new Wall(wallsGameobject, -canvas.clientWidth / 2, canvas.clientHeight / 2, canvas.clientWidth / 2, canvas.clientHeight / 2);
+    let edge4 = new Wall(wallsGameobject, -canvas.clientWidth / 2, -canvas.clientHeight / 2, -canvas.clientWidth / 2, canvas.clientHeight / 2);
 }
 
 // //Game loop (60 frames per second)

@@ -18,6 +18,10 @@ class Camera{
             Camera.renderers[i].draw();
         }
     }
+
+    static posRelatedToCam(position){
+        return new Vector2(position.x - (Camera.position.x - Camera.size.x / 2), -(position.y - Camera.position.y - Camera.size.y / 2));
+    }
 }
 class Renderer{
     gameObject;
